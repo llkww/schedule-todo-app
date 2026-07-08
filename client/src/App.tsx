@@ -6,6 +6,9 @@ import { AuthProvider } from "./context/AuthContext";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
+import { ScheduleDetailPage } from "./pages/schedules/ScheduleDetailPage";
+import { ScheduleFormPage } from "./pages/schedules/ScheduleFormPage";
+import { ScheduleListPage } from "./pages/schedules/ScheduleListPage";
 import { ProtectedRoute, PublicOnlyRoute } from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -21,10 +24,10 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index element={<PlaceholderPage title="Dashboard" />} />
-              <Route path="schedules" element={<PlaceholderPage title="Schedules" />} />
-              <Route path="schedules/new" element={<PlaceholderPage title="New schedule" />} />
-              <Route path="schedules/:id" element={<PlaceholderPage title="Schedule detail" />} />
-              <Route path="schedules/:id/edit" element={<PlaceholderPage title="Edit schedule" />} />
+              <Route path="schedules" element={<ScheduleListPage />} />
+              <Route path="schedules/new" element={<ScheduleFormPage />} />
+              <Route path="schedules/:id" element={<ScheduleDetailPage />} />
+              <Route path="schedules/:id/edit" element={<ScheduleFormPage />} />
               <Route path="calendar" element={<PlaceholderPage title="Calendar" />} />
               <Route path="matrix" element={<PlaceholderPage title="Priority matrix" />} />
               <Route path="tags" element={<PlaceholderPage title="Tags" />} />
