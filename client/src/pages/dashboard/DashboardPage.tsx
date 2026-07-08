@@ -48,7 +48,7 @@ export function DashboardPage() {
     <>
       <PageHeader
         title={`规划顺利，${user?.username ?? "你好"}`}
-        description="集中查看今日安排、近期事项和高优先级承诺。"
+        description="让今天的重点更清晰。"
         actions={
           <>
             <Link className="button button--secondary" to="/tags">
@@ -76,17 +76,17 @@ export function DashboardPage() {
             <StatCard label="已逾期" value={data.counts.overdue} icon={<TriangleAlert aria-hidden="true" />} />
           </div>
 
-          <Card title="今日安排" description="开始时间或截止时间在今天的日程。">
+          <Card title="今日安排">
             <TaskListPreview items={data.todayTasks} empty="今天还没有安排日程。" />
           </Card>
 
-          <Card title="近期截止" description="未来七天内到期且未完成的日程。">
+          <Card title="近期截止">
             <TaskListPreview items={data.upcomingTasks} empty="近期没有截止事项。" />
           </Card>
 
           <Card
             title="优先级概览"
-            description={`${data.counts.importantUrgent} 个重要且紧急事项需要关注。`}
+            description={`${data.counts.importantUrgent} 个事项需要优先看一眼。`}
             actions={
               <Link className="button button--ghost button--sm" to="/matrix">
                 <Grid2X2 aria-hidden="true" />
@@ -103,8 +103,8 @@ export function DashboardPage() {
           </Card>
 
           <Card
-            title="智能今日建议"
-            description="进入智能日程助理生成今日计划、冲突建议和任务总结。"
+            title="智能规划"
+            description="让 AI 帮你整理今天的安排。"
             actions={
               <Link className="button button--ghost button--sm" to="/ai-planner">
                 <Sparkles aria-hidden="true" />
@@ -119,8 +119,8 @@ export function DashboardPage() {
                 </Badge>
                 <p>
                   {aiStatus?.configured
-                    ? "可以根据当前日程生成规划建议，所有建议都需要你确认后执行。"
-                    : "智能日程助理未配置，请在后端 server/.env 中设置 DEEPSEEK_API_KEY。"}
+                    ? "建议会先给你确认，再写入日程。"
+                    : "智能规划暂未启用，请先完成 API Key 配置。"}
                 </p>
               </div>
               <div className="ai-dashboard-entry__metrics">
@@ -136,7 +136,7 @@ export function DashboardPage() {
             </div>
           </Card>
 
-          <Card title="标签统计" description="查看当前日程按标签的分组情况。">
+          <Card title="标签统计">
             <div className="tag-stat-list">
               {data.tagStats.length === 0 ? <p className="muted-text">还没有标签。</p> : null}
               {data.tagStats.map((tag) => (
@@ -148,7 +148,7 @@ export function DashboardPage() {
             </div>
           </Card>
 
-          <Card title="最近创建" description="工作区中最新创建的日程。">
+          <Card title="最近创建">
             <TaskListPreview items={data.recentTasks} empty="还没有创建日程。" />
           </Card>
         </div>

@@ -72,7 +72,7 @@ export function RegisterPage() {
     <AuthShell>
       <div className="auth-card__header">
         <h2>创建账号</h2>
-        <p>从一个私人的工作区开始，日程和标签只归属于你。</p>
+        <p>创建你的私人日程空间。</p>
       </div>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {errors.form ? <div className="form-alert">{errors.form}</div> : null}
@@ -89,6 +89,7 @@ export function RegisterPage() {
           label="邮箱"
           name="email"
           type="email"
+          placeholder="demo@example.com"
           autoComplete="email"
           value={values.email}
           onChange={(event) => update("email", event.target.value)}

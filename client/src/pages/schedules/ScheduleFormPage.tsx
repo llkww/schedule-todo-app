@@ -153,15 +153,16 @@ export function ScheduleFormPage() {
     <>
       <PageHeader
         title={isEditing ? "编辑日程" : "新建日程"}
-        description="记录事项内容，并按重要程度、紧急程度和标签进行分类。"
+        description="把要做的事安排下来。"
       />
       <form className="form-grid" onSubmit={handleSubmit} noValidate>
-        <Card title="日程详情" description="必填内容会在保存前进行校验。">
+        <Card title="日程详情">
           {errors.form ? <div className="form-alert">{errors.form}</div> : null}
           <div className="form-stack">
             <Input
               label="标题"
               name="title"
+              placeholder="例如：完成课程项目演示稿"
               value={values.title}
               onChange={(event) => update("title", event.target.value)}
               error={errors.title}
@@ -170,6 +171,7 @@ export function ScheduleFormPage() {
             <Textarea
               label="描述"
               name="description"
+              placeholder="补充一些细节，方便之后查看"
               value={values.description}
               onChange={(event) => update("description", event.target.value)}
               error={errors.description}
@@ -234,9 +236,9 @@ export function ScheduleFormPage() {
           </div>
         </Card>
 
-        <Card title="标签" description="使用标签组织日程，不影响优先级判断。">
+        <Card title="标签" description="给日程加个分类。">
           <div className="tag-selector">
-            {tags.length === 0 ? <p className="muted-text">还没有标签，你可以稍后添加。</p> : null}
+            {tags.length === 0 ? <p className="muted-text">还没有标签，之后再补也可以。</p> : null}
             {tags.map((tag) => (
               <button
                 className={values.tagIds.includes(tag.id) ? "tag-option tag-option--selected" : "tag-option"}
@@ -262,7 +264,7 @@ export function ScheduleFormPage() {
             取消
           </Link>
           <Button type="submit" loading={saving} icon={<Save aria-hidden="true" />}>
-            保存日程
+            保存
           </Button>
         </div>
       </form>

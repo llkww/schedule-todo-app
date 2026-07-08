@@ -69,25 +69,26 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="设置" description="管理个人资料、密码和当前登录状态。" />
+      <PageHeader title="设置" description="调整账户和密码。" />
       <div className="settings-grid">
-        <Card title="个人资料" description={user?.email ?? "当前登录账号"}>
+        <Card title="个人资料" description={user?.email ?? "登录账号"}>
           <form className="form-stack" onSubmit={saveProfile}>
             {profileError ? <div className="form-alert">{profileError}</div> : null}
             <Input
               label="用户名"
               name="username"
+              placeholder="例如：小林"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
             <Button type="submit" loading={saving} icon={<Save aria-hidden="true" />}>
-              保存资料
+              保存
             </Button>
           </form>
         </Card>
 
-        <Card title="修改密码" description="请使用包含字母、数字且不少于 8 个字符的密码。">
+        <Card title="修改密码" description="至少 8 个字符，包含字母和数字。">
           <form className="form-stack" onSubmit={savePassword}>
             {passwordError ? <div className="form-alert">{passwordError}</div> : null}
             <Input
@@ -115,15 +116,13 @@ export function SettingsPage() {
               required
             />
             <Button type="submit" loading={saving}>
-              更新密码
+              保存
             </Button>
           </form>
         </Card>
 
-        <Card title="安全提示" description="认证使用保存在当前浏览器本地的访问令牌。">
-          <p className="muted-text">
-            请仅在可信设备上使用本应用。退出登录会从浏览器存储中移除本地访问令牌。
-          </p>
+        <Card title="账号安全">
+          <p className="muted-text">在公共设备上使用后，记得退出登录。</p>
           <Button variant="secondary" onClick={() => void logout()} icon={<LogOut aria-hidden="true" />}>
             退出登录
           </Button>

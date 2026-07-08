@@ -286,7 +286,7 @@ describe("frontend app", () => {
     expect(screen.queryByText(/置信度/)).not.toBeInTheDocument();
     expect(createdBodies).toHaveLength(0);
 
-    await userEvent.click(screen.getByRole("button", { name: "确认保存日程" }));
+    await userEvent.click(screen.getByRole("button", { name: "确认保存" }));
     await waitFor(() => expect(createdBodies).toHaveLength(1));
     expect(createdBodies[0]).toMatchObject({
       title: "完成数据库实验报告",
@@ -327,7 +327,7 @@ describe("frontend app", () => {
 
     expect(await screen.findByText(/还差几项信息/)).toBeInTheDocument();
     expect(screen.getByText("开始时间")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "确认保存日程" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "确认保存" })).not.toBeInTheDocument();
   });
 
   it("preserves AI Planner chat history after the page is remounted", async () => {

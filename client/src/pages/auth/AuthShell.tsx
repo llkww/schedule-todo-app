@@ -9,9 +9,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <CalendarCheck2 aria-hidden="true" />
         </div>
         <h1>日程待办</h1>
-        <p>
-          一个专注的私人工作区，用来规划截止时间、整理标签，并判断哪些事情最值得优先处理。
-        </p>
+        <p>规划日程、整理标签，聚焦更重要的事。</p>
         <div className="auth-panel__features">
           <span>
             <CalendarCheck2 aria-hidden="true" />

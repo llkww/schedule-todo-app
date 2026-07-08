@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Edit3, Plus, Trash2 } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "../../components/ui/Button";
@@ -102,15 +102,16 @@ export function TagsPage() {
     <>
       <PageHeader
         title="标签"
-        description="维护清晰的标签体系，便于筛选日程和快速理解上下文。"
+        description="用标签整理你的日程。"
       />
       <div className="tag-page-grid">
-        <Card title={editing ? "编辑标签" : "新建标签"} description="标签名称在你的账号内保持唯一。">
+        <Card title={editing ? "编辑标签" : "新建标签"}>
           <form className="form-stack" onSubmit={handleSubmit} noValidate>
             {formError ? <div className="form-alert">{formError}</div> : null}
             <Input
               label="标签名称"
               name="name"
+              placeholder="例如：学习"
               value={values.name}
               onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
               required
@@ -118,6 +119,7 @@ export function TagsPage() {
             <Input
               label="自定义颜色"
               name="color"
+              placeholder="#4F46E5"
               value={values.color}
               onChange={(event) => setValues((current) => ({ ...current, color: event.target.value }))}
               required
@@ -140,20 +142,20 @@ export function TagsPage() {
                   取消
                 </Button>
               ) : null}
-              <Button type="submit" loading={saving} icon={<Plus aria-hidden="true" />}>
-                {editing ? "保存标签" : "创建标签"}
+              <Button type="submit" loading={saving}>
+                {editing ? "保存" : "新建"}
               </Button>
             </div>
           </form>
         </Card>
 
-        <Card title="标签库" description="每个标签都会显示当前关联的日程数量。">
+        <Card title="标签库">
           {loading ? <SkeletonList rows={3} /> : null}
           {!loading && error ? (
             <EmptyState title="标签无法加载" description={error} action={<Button onClick={() => void load()}>重试</Button>} />
           ) : null}
           {!loading && !error && tags.length === 0 ? (
-            <EmptyState title="还没有标签" description="创建第一个标签来归类日程。" />
+            <EmptyState title="还没有标签" description="先添加一个吧。" />
           ) : null}
           {!loading && !error && tags.length > 0 ? (
             <div className="tag-list">
@@ -181,7 +183,7 @@ export function TagsPage() {
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="删除标签"
-        description={`确定删除“${deleteTarget?.name ?? "此标签"}”吗？已有日程会保留其他数据。`}
+        description={`确定删除“${deleteTarget?.name ?? "此标签"}”吗？已有日程不会被删除。`}
         confirmLabel="删除"
         loading={saving}
         onClose={() => setDeleteTarget(null)}

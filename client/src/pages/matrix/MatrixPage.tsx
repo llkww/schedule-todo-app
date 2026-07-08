@@ -41,7 +41,7 @@ export function MatrixPage() {
     <>
       <PageHeader
         title="优先级四象限"
-        description="先区分紧急噪音和重要工作，再决定下一步行动。"
+        description="优先处理真正重要的事。"
       />
       {loading ? <SkeletonList rows={4} /> : null}
       {!loading && error ? (
@@ -61,7 +61,7 @@ export function MatrixPage() {
                   <strong>{quadrant.count}</strong>
                 </div>
                 <div className="preview-list">
-                  {quadrant.items.length === 0 ? <p className="muted-text">此象限暂无日程。</p> : null}
+                  {quadrant.items.length === 0 ? <p className="muted-text">这里还没有日程。</p> : null}
                   {quadrant.items.map((item) => (
                     <TaskCard compact key={item.id} schedule={item} />
                   ))}

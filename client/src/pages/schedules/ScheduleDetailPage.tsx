@@ -87,7 +87,6 @@ export function ScheduleDetailPage() {
     <>
       <PageHeader
         title={schedule.title}
-        description="查看完整日程记录，并按需要更新状态。"
         actions={
           <>
             <Button variant="secondary" loading={busy} onClick={() => void toggleCompleted()}>
@@ -150,10 +149,10 @@ export function ScheduleDetailPage() {
         </Card>
       </div>
 
-      <Card className="danger-zone" title="危险操作" description="仅在不再需要此日程时删除。">
+      <Card className="danger-zone" title="删除日程">
         <Button variant="danger" onClick={() => setDeleteOpen(true)}>
           <Trash2 aria-hidden="true" />
-          删除日程
+          删除
         </Button>
       </Card>
 

@@ -95,12 +95,15 @@ export function ScheduleListPage() {
   }
 
   const schedules = data?.items ?? [];
+  const hasActiveFilters = Boolean(
+    query.search || query.status || query.importance || query.urgency || query.tagId || query.completed || query.overdue,
+  );
 
   return (
     <>
       <PageHeader
         title="日程"
-        description="搜索、筛选并管理只属于你账号的每一项安排。"
+        description="快速找到接下来要做的事。"
         actions={
           <Link className="button button--primary" to="/schedules/new">
             <Plus aria-hidden="true" />
@@ -113,6 +116,7 @@ export function ScheduleListPage() {
         <Input
           label="搜索"
           name="search"
+          placeholder="搜索日程"
           value={query.search ?? ""}
           onChange={(event) => updateQuery("search", event.target.value)}
         />
@@ -192,8 +196,8 @@ export function ScheduleListPage() {
       ) : null}
       {!loading && !error && schedules.length === 0 ? (
         <EmptyState
-          title="没有找到日程"
-          description="新建日程或清空筛选条件以查看更多结果。"
+          title={hasActiveFilters ? "没有匹配结果" : "还没有日程"}
+          description={hasActiveFilters ? "换个条件试试。" : "先添加一个吧。"}
           action={
             <Link className="button button--primary" to="/schedules/new">
               <Plus aria-hidden="true" />

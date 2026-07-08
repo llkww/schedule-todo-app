@@ -58,7 +58,7 @@ export function CalendarPage() {
     <>
       <PageHeader
         title="日历"
-        description="按月查看日程，并打开每一天关联的事项。"
+        description="按月查看安排。"
         actions={
           <Link className="button button--primary" to="/schedules/new">
             <Plus aria-hidden="true" />
@@ -112,7 +112,7 @@ export function CalendarPage() {
             </div>
             <aside className="selected-day">
               <h2>{format(selected, "yyyy年M月d日", { locale: zhCN })}</h2>
-              {selectedTasks.length === 0 ? <p className="muted-text">当天没有日程。</p> : null}
+              {selectedTasks.length === 0 ? <p className="muted-text">这天没有日程。</p> : null}
               <div className="preview-list">
                 {selectedTasks.map((schedule) => (
                   <TaskCard compact key={schedule.id} schedule={schedule} />

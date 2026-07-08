@@ -54,7 +54,7 @@ export function LoginPage() {
     <AuthShell>
       <div className="auth-card__header">
         <h2>欢迎回来</h2>
-        <p>登录后查看今日安排、规划下一步，并保持优先级清晰可见。</p>
+        <p>看看今天要做什么。</p>
       </div>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {errors.form ? <div className="form-alert">{errors.form}</div> : null}
@@ -62,6 +62,7 @@ export function LoginPage() {
           label="邮箱"
           name="email"
           type="email"
+          placeholder="demo@example.com"
           autoComplete="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}

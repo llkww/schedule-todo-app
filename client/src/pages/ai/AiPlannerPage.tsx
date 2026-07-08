@@ -81,7 +81,7 @@ const draftFieldLabels: Record<DraftMissingField, string> = {
   dueTime: "截止时间",
   importance: "重要程度",
   urgency: "紧急程度",
-  status: "当前状态",
+  status: "状态",
   tags: "标签",
 };
 
@@ -93,7 +93,7 @@ const draftFieldQuestions: Record<DraftMissingField, string> = {
   dueTime: "截止时间是什么时候？",
   importance: "重要程度是低、中还是高？",
   urgency: "紧急程度是低、中还是高？",
-  status: "当前状态是待处理、进行中、已完成还是已取消？",
+  status: "这条日程现在是什么状态？",
   tags: "要绑定哪些标签？不需要的话可以回复“无标签”。",
 };
 
@@ -146,7 +146,7 @@ function createWelcomeMessage() {
   return createMessage({
     role: "assistant",
     content:
-      "你好，我可以帮你安排今天、看看时间是否冲突，也能把一句话整理成日程。你直接说要做什么，我会把信息确认完整后再保存。",
+      "你好，我可以帮你安排今天、检查冲突，也能把一句话整理成日程。保存前会先让你确认。",
   });
 }
 
@@ -424,7 +424,7 @@ export function AiPlannerPage() {
       const questions = buildClarifyingQuestions(chatState.lastDraft, currentMissing);
       addMessage({
         role: "assistant",
-        content: "我们先把这条日程补完整，确认好后我再帮你保存。",
+        content: "我们先把这条日程补完整，确认后再保存。",
         draft: { ...chatState.lastDraft, clarifyingQuestions: questions, missingFields: currentMissing },
         missingFields: currentMissing,
         canConfirmDraft: false,
@@ -458,7 +458,7 @@ export function AiPlannerPage() {
         role: "assistant",
         content: isComplete
           ? "这条日程已经整理好了。你确认后，我再把它保存到日程里。"
-          : "还差几项信息，我确认好之后再帮你保存：",
+          : "还差几项信息，确认后再保存：",
         draft: normalizedDraft,
         missingFields,
         canConfirmDraft: isComplete,
@@ -535,7 +535,7 @@ export function AiPlannerPage() {
       <header className="ai-chat-hero">
         <div>
           <h1>智能规划</h1>
-          <p>把想做的事说出来，我会帮你补齐时间、优先级和标签，再由你确认保存。</p>
+          <p>说出安排，我来帮你整理。</p>
         </div>
         <Button variant="secondary" onClick={clearConversation} disabled={busy}>
           清空对话
@@ -601,7 +601,7 @@ export function AiPlannerPage() {
                   event.currentTarget.form?.requestSubmit();
                 }
               }}
-              placeholder="例如：明天 15:00 到 16:00 写数据库实验报告，今晚 22:00 截止，很重要很紧急，待处理，课程标签，无备注。"
+              placeholder="例如：明天下午三点提醒我完成实验报告，很重要"
               rows={2}
             />
             <Button type="submit" disabled={busy || input.trim().length < 2} aria-label="发送">
@@ -775,7 +775,7 @@ function DraftView({
         </div>
       ) : null}
       {draft.suggestedTags.length === 0 ? <small>不绑定标签。</small> : null}
-      {missingTags.length > 0 ? <small>这些标签还不存在：{missingTags.join("、")}，保存时不会自动创建。</small> : null}
+      {missingTags.length > 0 ? <small>这些标签暂时不存在：{missingTags.join("、")}。保存时会先略过。</small> : null}
       {missingFields.length > 0 ? (
         <div className="ai-missing-fields" aria-label="仍需确认">
           {missingFields.map((field) => (
@@ -793,7 +793,7 @@ function DraftView({
       {canConfirm ? (
         <Button size="sm" loading={confirming} disabled={confirmed} onClick={onConfirm}>
           <CalendarPlus aria-hidden="true" />
-          {confirmed ? "已保存" : "确认保存日程"}
+          {confirmed ? "已保存" : "确认保存"}
         </Button>
       ) : null}
     </div>
