@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+client/.env
+server/.env
+
+# Build and coverage output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases and SQLite sidecar files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+server/prisma/dev.db*
+server/prisma/test.db*
+
+# Caches and temporary exports
+.vite/
+.vitest/
+.cache/
+tmp/
+temp/
+exports/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Keys and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
