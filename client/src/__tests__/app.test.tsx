@@ -5,11 +5,12 @@ import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "../App";
+import { AiPlannerPage } from "../pages/ai/AiPlannerPage";
 import { MatrixPage } from "../pages/matrix/MatrixPage";
 import { ScheduleFormPage } from "../pages/schedules/ScheduleFormPage";
 import { ScheduleListPage } from "../pages/schedules/ScheduleListPage";
 import { TagsPage } from "../pages/tags/TagsPage";
-import type { DashboardStats, MatrixStats, Schedule } from "../types/domain";
+import type { AiTaskDraft, DashboardStats, MatrixStats, Schedule } from "../types/domain";
 
 const sampleSchedule: Schedule = {
   id: "schedule-1",
@@ -30,6 +31,15 @@ const sampleSchedule: Schedule = {
 function jsonResponse(data: unknown, status = 200) {
   return Promise.resolve(
     new Response(JSON.stringify({ success: status < 400, data, message: "操作成功" }), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+}
+
+function jsonErrorResponse(message: string, code = "REQUEST_FAILED", status = 500) {
+  return Promise.resolve(
+    new Response(JSON.stringify({ success: false, error: { code, message } }), {
       status,
       headers: { "Content-Type": "application/json" },
     }),
@@ -167,5 +177,125 @@ describe("frontend app", () => {
 
     await waitFor(() => expect(screen.getByText("重要且紧急")).toBeInTheDocument());
     expect(screen.getByText("交付项目")).toBeInTheDocument();
+  });
+
+  it("renders the AI Planner page with unconfigured status", async () => {
+    mockFetch((url) => {
+      if (url.includes("/ai/status")) {
+        return { provider: "deepseek", configured: false, model: "deepseek-v4-flash" };
+      }
+      if (url.includes("/tags")) return [];
+      return {};
+    });
+
+    renderWithRouter(<AiPlannerPage />);
+
+    expect(await screen.findByRole("heading", { name: "智能日程助理" })).toBeInTheDocument();
+    expect(await screen.findByText(/智能日程助理未配置/)).toBeInTheDocument();
+  });
+
+  it("shows loading while generating today plan", async () => {
+    let resolvePlan: (() => void) | undefined;
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/ai/status")) {
+        return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
+      }
+      if (url.includes("/tags")) return jsonResponse([]);
+      if (url.includes("/ai/plan/today")) {
+        return new Promise<Response>((resolve) => {
+          resolvePlan = () => {
+            resolve(
+              new Response(
+                JSON.stringify({
+                  success: true,
+                  data: {
+                    overview: "今天先处理高优先级任务。",
+                    recommendedTasks: [],
+                    warnings: [],
+                    productivityTip: "先完成最关键的一件事。",
+                  },
+                  message: "操作成功",
+                }),
+                { status: 200, headers: { "Content-Type": "application/json" } },
+              ),
+            );
+          };
+        });
+      }
+      return jsonResponse({});
+    });
+
+    renderWithRouter(<AiPlannerPage />);
+
+    const button = await screen.findByRole("button", { name: /生成今日计划/ });
+    await userEvent.click(button);
+    expect(button).toBeDisabled();
+    resolvePlan?.();
+    expect(await screen.findByText("今天先处理高优先级任务。")).toBeInTheDocument();
+  });
+
+  it("shows parsed task draft and creates schedule only after confirmation", async () => {
+    const draft: AiTaskDraft = {
+      title: "完成数据库实验报告",
+      description: "根据自然语言解析。",
+      startTime: null,
+      endTime: null,
+      dueTime: new Date().toISOString(),
+      importance: "high",
+      urgency: "high",
+      status: "pending",
+      suggestedTags: ["课程"],
+      confidence: 0.91,
+      clarifyingQuestions: [],
+    };
+    const createdBodies: unknown[] = [];
+
+    vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/ai/status")) {
+        return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
+      }
+      if (url.includes("/tags")) return jsonResponse([{ id: "tag-course", name: "课程", color: "#2563EB" }]);
+      if (url.includes("/ai/parse-task")) return jsonResponse(draft);
+      if (url.includes("/schedules")) {
+        createdBodies.push(JSON.parse(String(init?.body)));
+        return jsonResponse({ ...sampleSchedule, title: draft.title });
+      }
+      return jsonResponse({});
+    });
+
+    renderWithRouter(<AiPlannerPage />);
+
+    await userEvent.type(await screen.findByLabelText("任务描述"), "明天下午三点完成数据库实验报告");
+    await userEvent.click(screen.getByRole("button", { name: /解析草稿/ }));
+    expect(await screen.findByText("完成数据库实验报告")).toBeInTheDocument();
+    expect(createdBodies).toHaveLength(0);
+
+    await userEvent.click(screen.getByRole("button", { name: "确认创建日程" }));
+    await waitFor(() => expect(createdBodies).toHaveLength(1));
+    expect(createdBodies[0]).toMatchObject({
+      title: "完成数据库实验报告",
+      tagIds: ["tag-course"],
+    });
+  });
+
+  it("shows AI error state when generation fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/ai/status")) {
+        return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
+      }
+      if (url.includes("/tags")) return jsonResponse([]);
+      if (url.includes("/ai/plan/today")) {
+        return jsonErrorResponse("AI 服务调用失败", "AI_PROVIDER_ERROR", 502);
+      }
+      return jsonResponse({});
+    });
+
+    renderWithRouter(<AiPlannerPage />);
+
+    await userEvent.click(await screen.findByRole("button", { name: /生成今日计划/ }));
+    expect(await screen.findByText("AI 服务调用失败")).toBeInTheDocument();
   });
 });

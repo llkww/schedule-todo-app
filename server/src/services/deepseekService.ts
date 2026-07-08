@@ -25,12 +25,12 @@ type DeepSeekResponse = {
 
 function readAiConfig() {
   return {
-    provider: process.env.AI_PROVIDER || config.aiProvider,
-    apiKey: process.env.DEEPSEEK_API_KEY || config.deepseekApiKey,
-    baseUrl: process.env.DEEPSEEK_BASE_URL || config.deepseekBaseUrl,
-    model: process.env.DEEPSEEK_MODEL || config.deepseekModel,
-    timeoutMs: Number(process.env.AI_TIMEOUT_MS || config.aiTimeoutMs),
-    maxOutputTokens: Number(process.env.AI_MAX_OUTPUT_TOKENS || config.aiMaxOutputTokens),
+    provider: process.env.AI_PROVIDER ?? config.aiProvider,
+    apiKey: process.env.DEEPSEEK_API_KEY ?? config.deepseekApiKey,
+    baseUrl: process.env.DEEPSEEK_BASE_URL ?? config.deepseekBaseUrl,
+    model: process.env.DEEPSEEK_MODEL ?? config.deepseekModel,
+    timeoutMs: Number(process.env.AI_TIMEOUT_MS ?? config.aiTimeoutMs),
+    maxOutputTokens: Number(process.env.AI_MAX_OUTPUT_TOKENS ?? config.aiMaxOutputTokens),
   };
 }
 
