@@ -849,6 +849,37 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.ai-dashboard-entry {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ai-dashboard-entry p {
+  color: var(--color-text-muted);
+  margin: var(--space-3) 0 0;
+}
+
+.ai-dashboard-entry__metrics {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-dashboard-entry__metrics span {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+
+.ai-dashboard-entry__metrics strong {
+  color: var(--color-text);
+  font-size: 1.25rem;
+}
+
 .stat-grid {
   display: grid;
   gap: var(--space-4);
@@ -957,6 +988,200 @@
   font-weight: 800;
   text-align: center;
   text-transform: uppercase;
+}
+
+.ai-planner-grid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-card--wide {
+  grid-column: 1 / -1;
+}
+
+.ai-status-grid,
+.ai-summary-grid,
+.ai-detail-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.ai-status-metric,
+.ai-detail-grid > div {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.ai-status-metric span,
+.ai-detail-grid dt {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ai-status-metric strong,
+.ai-detail-grid dd {
+  margin: 0;
+}
+
+.ai-alert {
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.ai-alert--warning {
+  background: var(--color-warning-soft);
+  border-color: #fed7aa;
+  color: var(--color-warning);
+  margin-top: var(--space-4);
+}
+
+.ai-alert--danger {
+  background: var(--color-danger-soft);
+  border-color: #fecaca;
+  color: var(--color-danger);
+  grid-column: 1 / -1;
+}
+
+.ai-result-stack,
+.ai-form-stack {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ai-overview {
+  color: var(--color-text);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.ai-task-list,
+.ai-warning-list,
+.ai-two-column {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ai-two-column {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ai-result-row,
+.ai-warning-row,
+.ai-tip,
+.ai-draft-preview,
+.ai-list-block {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.ai-result-row {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ai-result-row p,
+.ai-result-row span,
+.ai-result-row small,
+.ai-draft-preview p,
+.ai-list-block p {
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0;
+}
+
+.ai-result-row time {
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ai-row-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ai-warning-row,
+.ai-tip {
+  align-items: center;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.ai-warning-row {
+  background: var(--color-warning-soft);
+  border-color: #fed7aa;
+  color: var(--color-warning);
+}
+
+.ai-tip {
+  background: var(--color-success-soft);
+  border-color: #bbf7d0;
+  color: var(--color-success);
+}
+
+.ai-count-line {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.ai-count-line strong {
+  font-size: 1.75rem;
+}
+
+.ai-actions,
+.ai-summary-actions,
+.ai-tag-row {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.ai-summary-actions {
+  align-items: end;
+}
+
+.ai-summary-actions .field {
+  min-width: 150px;
+}
+
+.ai-draft-preview {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ai-detail-grid {
+  margin: 0;
+}
+
+.ai-list-block strong {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.ai-list-block ul {
+  color: var(--color-text-muted);
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
 }
 
 .selected-day {
@@ -1206,6 +1431,8 @@
   .tag-page-grid,
   .tag-row,
   .dashboard-grid,
+  .ai-planner-grid,
+  .ai-two-column,
   .stat-grid,
   .matrix-grid,
   .calendar-layout,

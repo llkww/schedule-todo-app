@@ -5,6 +5,7 @@ import {
   Grid2X2,
   Home,
   Settings,
+  Sparkles,
   Tags,
   X,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const navItems = [
   { to: "/schedules", label: "日程", icon: CheckSquare },
   { to: "/calendar", label: "日历", icon: CalendarDays },
   { to: "/matrix", label: "四象限", icon: Grid2X2 },
+  { to: "/ai-planner", label: "智能规划", icon: Sparkles },
   { to: "/tags", label: "标签", icon: Tags },
   { to: "/settings", label: "设置", icon: Settings },
 ];

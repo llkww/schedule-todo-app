@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, CheckCircle2, Clock3, Grid2X2, Plus, Tags, TriangleAlert } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, Grid2X2, Plus, Sparkles, Tags, TriangleAlert } from "lucide-react";
 
+import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -11,12 +12,14 @@ import { StatCard } from "../../components/ui/StatCard";
 import { TagPill } from "../../components/ui/TagPill";
 import { TaskCard } from "../../components/ui/TaskCard";
 import { useAuth } from "../../context/AuthContext";
+import { fetchAiStatus } from "../../services/ai";
 import { fetchDashboardStats } from "../../services/stats";
-import type { DashboardStats } from "../../types/domain";
+import type { AiStatus, DashboardStats } from "../../types/domain";
 
 export function DashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardStats | null>(null);
+  const [aiStatus, setAiStatus] = useState<AiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -24,7 +27,12 @@ export function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      setData(await fetchDashboardStats());
+      const [dashboard, status] = await Promise.all([
+        fetchDashboardStats(),
+        fetchAiStatus().catch(() => null),
+      ]);
+      setData(dashboard);
+      setAiStatus(status);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "仪表盘加载失败");
     } finally {
@@ -91,6 +99,40 @@ export function DashboardPage() {
               <span>安排推进</span>
               <span>委派处理</span>
               <span>批量处理</span>
+            </div>
+          </Card>
+
+          <Card
+            title="智能今日建议"
+            description="进入智能日程助理生成今日计划、冲突建议和任务总结。"
+            actions={
+              <Link className="button button--ghost button--sm" to="/ai-planner">
+                <Sparkles aria-hidden="true" />
+                打开智能规划
+              </Link>
+            }
+          >
+            <div className="ai-dashboard-entry">
+              <div>
+                <Badge tone={aiStatus?.configured ? "success" : "warning"}>
+                  {aiStatus?.configured ? "已配置" : "未配置"}
+                </Badge>
+                <p>
+                  {aiStatus?.configured
+                    ? "可以根据当前日程生成规划建议，所有建议都需要你确认后执行。"
+                    : "智能日程助理未配置，请在后端 server/.env 中设置 DEEPSEEK_API_KEY。"}
+                </p>
+              </div>
+              <div className="ai-dashboard-entry__metrics">
+                <span>
+                  <strong>{data.counts.importantUrgent}</strong>
+                  高优先级
+                </span>
+                <span>
+                  <strong>{data.counts.overdue}</strong>
+                  已逾期
+                </span>
+              </div>
             </div>
           </Card>
 
