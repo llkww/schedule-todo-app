@@ -75,7 +75,8 @@ async function requestDeepSeek(messages: DeepSeekMessage[]) {
       body: JSON.stringify({
         model: aiConfig.model,
         messages,
-        temperature: 0.2,
+        response_format: { type: "json_object" },
+        temperature: 0,
         max_tokens: aiConfig.maxOutputTokens,
       }),
       signal: controller.signal,

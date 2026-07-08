@@ -8,9 +8,10 @@ import { buildUserPrompt } from "../utils/aiPromptBuilder.js";
 import {
   conflictAdviceResponseSchema,
   explainResponseSchema,
-  parseTaskResponseSchema,
+  parseTaskDraftResponseSchema,
   summaryResponseSchema,
   todayPlanResponseSchema,
+  type ParseTaskResponse,
 } from "../utils/aiResponseParser.js";
 
 const aiScheduleInclude = {
@@ -156,6 +157,65 @@ function findTimeConflicts(schedules: AiScheduleRecord[]) {
   return conflicts.slice(0, 20);
 }
 
+function extractHour(text: string, patterns: RegExp[]) {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    const value = match?.[1] ? Number(match[1]) : NaN;
+    if (Number.isInteger(value) && value >= 0 && value <= 23) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function shanghaiHour(date: Date) {
+  const hour = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).format(date);
+  return Number(hour);
+}
+
+function correctShanghaiTime(value: string | null, intendedHour: number | null) {
+  if (!value || intendedHour === null) return value;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  if (shanghaiHour(date) !== intendedHour && date.getUTCHours() === intendedHour) {
+    return new Date(date.getTime() - 8 * 60 * 60 * 1000).toISOString();
+  }
+
+  return value;
+}
+
+function normalizeParsedDraftTimes(draft: ParseTaskResponse, text: string): ParseTaskResponse {
+  const startHour = extractHour(text, [
+    /开始时间\s*(\d{1,2})(?:[:：点时])?/,
+    /(?:从|自)\s*(\d{1,2})(?:[:：点时])?/,
+    /(\d{1,2})(?:[:：点时])\s*(?:到|至|-|—)\s*\d{1,2}/,
+  ]);
+  const endHour = extractHour(text, [
+    /结束时间(?:和截止时间)?\s*(\d{1,2})(?:[:：点时])?/,
+    /(?:到|至|直到)\s*(\d{1,2})(?:[:：点时])?/,
+    /\d{1,2}(?:[:：点时])\s*(?:到|至|-|—)\s*(\d{1,2})/,
+  ]);
+  const dueHour = extractHour(text, [
+    /截止时间\s*(\d{1,2})(?:[:：点时])?/,
+    /结束时间和截止时间\s*(\d{1,2})(?:[:：点时])?/,
+    /最晚\s*(\d{1,2})(?:[:：点时])?/,
+  ]);
+
+  return {
+    ...draft,
+    startTime: correctShanghaiTime(draft.startTime, startHour),
+    endTime: correctShanghaiTime(draft.endTime, endHour),
+    dueTime: correctShanghaiTime(draft.dueTime, dueHour ?? endHour),
+  };
+}
+
 export function getAiPlannerStatus() {
   return getDeepSeekStatus();
 }
@@ -247,16 +307,17 @@ export async function explainSchedulePriority(userId: string, scheduleId: string
 export async function parseTaskDraft(userId: string, text: string) {
   const tags = await getUserTags(userId);
 
-  return callDeepSeekJson({
-    schema: parseTaskResponseSchema,
+  const draft = await callDeepSeekJson({
+    schema: parseTaskDraftResponseSchema,
     userPrompt: buildUserPrompt(
       [
         "把用户输入的自然语言解析为日程草稿。只生成草稿，不要创建、修改或删除数据库记录。",
-        "必须确认这些字段后才算完整：title、description、startTime、endTime、dueTime、importance、urgency、status、tags。",
-        "用户明确说无备注时 description 可为空；用户明确说无标签时 suggestedTags 可为空。",
-        "未被用户明确提供或明确选择默认值的字段，必须放入 missingFields，并在 clarifyingQuestions 里继续追问。",
-        "不要为了通过校验而自行默认填 medium、pending 或空标签；只有用户明确表达后才可视为已确认。",
-        "如果输入中包含已有草稿和用户补充，应该在原草稿上补充信息；如果用户补充与创建日程无关，保持原草稿并继续追问缺失字段。",
+        "用户必须一次性说明这些字段后才算完整：待办事项内容、startTime、endTime、dueTime、importance、urgency。",
+        "待办事项内容写入 title。description 可为空字符串，status 固定为 pending，suggestedTags 可为空数组。",
+        "未被用户明确提供的必填字段，必须放入 missingFields。",
+        "不要为了通过校验而自行默认填 startTime、endTime、dueTime、importance 或 urgency；只有用户明确表达后才可视为已确认。",
+        "不要继续追问用户。信息不足时 clarifyingQuestions 返回空数组，由前端提示用户重新输入。",
+        "用户未说明时区时，一律按 Asia/Shanghai（UTC+08:00）理解；例如 14 点应输出 14:00+08:00 或等价 UTC 06:00Z。",
         "不确定的日期填 null，所有日期都使用 ISO 字符串。",
       ].join(" "),
       {
@@ -271,7 +332,7 @@ export async function parseTaskDraft(userId: string, text: string) {
         suggestedTags: ["string"],
         clarifyingQuestions: ["string"],
         missingFields: [
-          "title | description | startTime | endTime | dueTime | importance | urgency | status | tags",
+          "title | startTime | endTime | dueTime | importance | urgency",
         ],
       },
       {
@@ -281,6 +342,8 @@ export async function parseTaskDraft(userId: string, text: string) {
       },
     ),
   });
+
+  return normalizeParsedDraftTimes(draft, text);
 }
 
 export async function generateTaskSummary(userId: string, range: SummaryRange) {

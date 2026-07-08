@@ -2,6 +2,14 @@ import { prisma } from "../src/config/prisma.js";
 
 const statements = [
   "PRAGMA foreign_keys = OFF",
+  'DROP INDEX IF EXISTS "User_email_key"',
+  'DROP INDEX IF EXISTS "Schedule_userId_idx"',
+  'DROP INDEX IF EXISTS "Schedule_dueTime_idx"',
+  'DROP INDEX IF EXISTS "Schedule_status_idx"',
+  'DROP INDEX IF EXISTS "Schedule_importance_urgency_idx"',
+  'DROP INDEX IF EXISTS "Tag_userId_idx"',
+  'DROP INDEX IF EXISTS "Tag_userId_name_key"',
+  'DROP INDEX IF EXISTS "ScheduleTag_tagId_idx"',
   'DROP TABLE IF EXISTS "ScheduleTag"',
   'DROP TABLE IF EXISTS "Schedule"',
   'DROP TABLE IF EXISTS "Tag"',

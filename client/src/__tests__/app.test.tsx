@@ -279,7 +279,7 @@ describe("frontend app", () => {
 
     await userEvent.type(
       await screen.findByLabelText("输入自然语言日程或问题"),
-      "明天15点到16点完成数据库实验报告，今晚22点截止，很重要很紧急，待处理，课程标签",
+      "明天15点到16点完成数据库实验报告，今晚22点截止，很重要很紧急",
     );
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
     expect(await screen.findByText("完成数据库实验报告")).toBeInTheDocument();
@@ -294,7 +294,7 @@ describe("frontend app", () => {
     });
   });
 
-  it("keeps asking before saving an incomplete natural language schedule", async () => {
+  it("asks the user to re-enter an incomplete natural language schedule", async () => {
     const draft: AiTaskDraft = {
       title: "完成数据库实验报告",
       description: "",
@@ -306,9 +306,10 @@ describe("frontend app", () => {
       status: "pending",
       suggestedTags: [],
       confidence: 0.5,
-      clarifyingQuestions: ["什么时候开始？"],
-      missingFields: ["description", "startTime", "endTime", "dueTime", "importance", "urgency", "status", "tags"],
+      clarifyingQuestions: [],
+      missingFields: ["startTime", "endTime", "dueTime", "importance", "urgency"],
     };
+    const parseCalls: string[] = [];
 
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
@@ -316,7 +317,10 @@ describe("frontend app", () => {
         return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
       }
       if (url.includes("/tags")) return jsonResponse([]);
-      if (url.includes("/ai/parse-task")) return jsonResponse(draft);
+      if (url.includes("/ai/parse-task")) {
+        parseCalls.push(url);
+        return jsonResponse(draft);
+      }
       return jsonResponse({});
     });
 
@@ -325,8 +329,8 @@ describe("frontend app", () => {
     await userEvent.type(await screen.findByLabelText("输入自然语言日程或问题"), "帮我安排数据库实验报告");
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
 
-    expect(await screen.findByText(/还差几项信息/)).toBeInTheDocument();
-    expect(screen.getByText("开始时间")).toBeInTheDocument();
+    expect(await screen.findByText("请用户重新输入")).toBeInTheDocument();
+    expect(parseCalls).toHaveLength(0);
     expect(screen.queryByRole("button", { name: "确认保存" })).not.toBeInTheDocument();
   });
 
@@ -342,8 +346,8 @@ describe("frontend app", () => {
       status: "pending",
       suggestedTags: [],
       confidence: 0.5,
-      clarifyingQuestions: ["什么时候开始？"],
-      missingFields: ["description", "startTime", "endTime", "dueTime", "importance", "urgency", "status", "tags"],
+      clarifyingQuestions: [],
+      missingFields: ["startTime", "endTime", "dueTime", "importance", "urgency"],
     };
 
     vi.spyOn(globalThis, "fetch").mockImplementation((input) => {

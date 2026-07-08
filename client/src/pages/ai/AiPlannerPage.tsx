@@ -52,25 +52,20 @@ type ChatMessage = {
 
 type ChatState = {
   messages: ChatMessage[];
-  taskContext: string;
   confirmedDraftIds: string[];
-  lastDraft: AiTaskDraft | null;
 };
 
 type LoadingKey = "" | "plan" | "conflict" | "summary" | "parse" | "confirm";
 
 const CHAT_STORAGE_KEY = "schedule.todo.aiPlanner.chat.v2";
 
-const draftFieldOrder: DraftMissingField[] = [
+const requiredDraftFields: DraftMissingField[] = [
   "title",
-  "description",
   "startTime",
   "endTime",
   "dueTime",
   "importance",
   "urgency",
-  "status",
-  "tags",
 ];
 
 const draftFieldLabels: Record<DraftMissingField, string> = {
@@ -83,18 +78,6 @@ const draftFieldLabels: Record<DraftMissingField, string> = {
   urgency: "紧急程度",
   status: "状态",
   tags: "标签",
-};
-
-const draftFieldQuestions: Record<DraftMissingField, string> = {
-  title: "这条日程的标题是什么？",
-  description: "需要添加备注吗？不需要的话可以回复“无备注”。",
-  startTime: "什么时候开始？",
-  endTime: "预计什么时候结束？",
-  dueTime: "截止时间是什么时候？",
-  importance: "重要程度是低、中还是高？",
-  urgency: "紧急程度是低、中还是高？",
-  status: "这条日程现在是什么状态？",
-  tags: "要绑定哪些标签？不需要的话可以回复“无标签”。",
 };
 
 const riskLabels: Record<RiskLevel, string> = {
@@ -153,9 +136,7 @@ function createWelcomeMessage() {
 function createInitialChatState(): ChatState {
   return {
     messages: [createWelcomeMessage()],
-    taskContext: "",
     confirmedDraftIds: [],
-    lastDraft: null,
   };
 }
 
@@ -175,9 +156,7 @@ function loadStoredChatState(): ChatState {
 
     return {
       messages: parsed.messages,
-      taskContext: typeof parsed.taskContext === "string" ? parsed.taskContext : "",
       confirmedDraftIds: Array.isArray(parsed.confirmedDraftIds) ? parsed.confirmedDraftIds : [],
-      lastDraft: parsed.lastDraft ?? null,
     };
   } catch {
     return createInitialChatState();
@@ -189,14 +168,6 @@ function saveStoredChatState(state: ChatState) {
   window.sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(state));
 }
 
-function contextHasNoDescription(context: string) {
-  return /无备注|不用备注|不需要备注|没有备注|无描述|不用描述|不需要描述|没有描述/.test(context);
-}
-
-function contextHasNoTags(context: string) {
-  return /无标签|不用标签|不需要标签|没有标签/.test(context);
-}
-
 function contextHasImportance(context: string) {
   return /重要程度|重要|不重要|高优先|中优先|低优先|普通优先|一般重要|低重要/.test(context);
 }
@@ -205,18 +176,42 @@ function contextHasUrgency(context: string) {
   return /紧急程度|紧急|不急|不紧急|尽快|马上|立刻|普通紧急|一般紧急/.test(context);
 }
 
-function contextHasStatus(context: string) {
-  return /状态|待处理|待办|未开始|进行中|已完成|完成了|已取消|取消/.test(context);
+function textHasTaskContent(text: string) {
+  const normalized = text.trim();
+  if (normalized.length < 2) return false;
+  return /提醒我|安排|待办|日程|任务|完成|考试|上课|开会|会议|报告|作业|项目|复习|学习|提交|处理|准备|写|看|做|买|联系|整理|沟通/.test(
+    normalized,
+  );
 }
 
-function getDraftMissingFields(draft: AiTaskDraft, context: string): DraftMissingField[] {
+function textHasStartTime(text: string) {
+  return /开始时间|开始|从|自|(\d{1,2})(?:[:：点时])\s*(?:到|至|-|—)\s*\d{1,2}/.test(text);
+}
+
+function textHasEndTime(text: string) {
+  return /结束时间|结束|到|至|直到|(\d{1,2})(?:[:：点时])\s*(?:到|至|-|—)\s*\d{1,2}/.test(text);
+}
+
+function textHasDueTime(text: string) {
+  return /截止时间|截止|到期|最晚|deadline/.test(text);
+}
+
+function getInputMissingFields(text: string): DraftMissingField[] {
+  const fields = new Set<DraftMissingField>();
+  if (!textHasTaskContent(text)) fields.add("title");
+  if (!textHasStartTime(text)) fields.add("startTime");
+  if (!textHasEndTime(text)) fields.add("endTime");
+  if (!textHasDueTime(text)) fields.add("dueTime");
+  if (!contextHasImportance(text)) fields.add("importance");
+  if (!contextHasUrgency(text)) fields.add("urgency");
+  return requiredDraftFields.filter((field) => fields.has(field));
+}
+
+function getDraftMissingFields(draft: AiTaskDraft): DraftMissingField[] {
   const fields = new Set<DraftMissingField>(draft.missingFields ?? []);
 
   if (draft.title.trim()) fields.delete("title");
   else fields.add("title");
-
-  if (draft.description.trim() || contextHasNoDescription(context)) fields.delete("description");
-  else fields.add("description");
 
   if (draft.startTime) fields.delete("startTime");
   else fields.add("startTime");
@@ -227,73 +222,13 @@ function getDraftMissingFields(draft: AiTaskDraft, context: string): DraftMissin
   if (draft.dueTime) fields.delete("dueTime");
   else fields.add("dueTime");
 
-  if (contextHasImportance(context)) fields.delete("importance");
+  if (draft.importance) fields.delete("importance");
   else fields.add("importance");
 
-  if (contextHasUrgency(context)) fields.delete("urgency");
+  if (draft.urgency) fields.delete("urgency");
   else fields.add("urgency");
 
-  if (contextHasStatus(context)) fields.delete("status");
-  else fields.add("status");
-
-  if (draft.suggestedTags.length > 0 || contextHasNoTags(context)) fields.delete("tags");
-  else fields.add("tags");
-
-  return draftFieldOrder.filter((field) => fields.has(field));
-}
-
-function buildClarifyingQuestions(draft: AiTaskDraft, fields: DraftMissingField[]) {
-  const questions = [...draft.clarifyingQuestions, ...fields.map((field) => draftFieldQuestions[field])];
-  return [...new Set(questions)].slice(0, 6);
-}
-
-function isClearlyUnrelatedDuringDraft(text: string) {
-  const hasScheduleSignal =
-    /今天|明天|后天|下周|上午|下午|晚上|点|分钟|小时|开始|结束|截止|重要|紧急|状态|待处理|进行中|完成|取消|标签|备注|描述|无标签|无备注|不需要|不用|\d/.test(
-      text,
-    );
-  const hasUnrelatedSignal = /天气|新闻|笑话|你是谁|闲聊|电影|音乐|游戏|股票|旅游|哈哈|无聊/.test(text);
-  return hasUnrelatedSignal && !hasScheduleSignal;
-}
-
-function buildTaskPrompt({
-  taskContext,
-  lastDraft,
-  missingFields,
-  text,
-}: {
-  taskContext: string;
-  lastDraft: AiTaskDraft | null;
-  missingFields: DraftMissingField[];
-  text: string;
-}) {
-  if (!taskContext) {
-    return `用户希望创建日程：${text}`;
-  }
-
-  return [
-    taskContext,
-    lastDraft
-      ? `已有草稿：${JSON.stringify({
-          title: lastDraft.title,
-          description: lastDraft.description,
-          startTime: lastDraft.startTime,
-          endTime: lastDraft.endTime,
-          dueTime: lastDraft.dueTime,
-          importance: lastDraft.importance,
-          urgency: lastDraft.urgency,
-          status: lastDraft.status,
-          suggestedTags: lastDraft.suggestedTags,
-        })}`
-      : "",
-    missingFields.length > 0
-      ? `仍需确认：${missingFields.map((field) => draftFieldLabels[field]).join("、")}`
-      : "",
-    `用户补充：${text}`,
-    "如果用户补充与日程创建无关，请保持已有草稿，并继续询问仍需确认的信息。",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  return requiredDraftFields.filter((field) => fields.has(field));
 }
 
 export function AiPlannerPage() {
@@ -416,64 +351,50 @@ export function AiPlannerPage() {
     addMessage({ role: "user", content: text });
     setInput("");
 
-    const currentMissing = chatState.lastDraft
-      ? getDraftMissingFields(chatState.lastDraft, chatState.taskContext)
-      : [];
-
-    if (chatState.taskContext && chatState.lastDraft && isClearlyUnrelatedDuringDraft(text)) {
-      const questions = buildClarifyingQuestions(chatState.lastDraft, currentMissing);
+    if (getInputMissingFields(text).length > 0) {
       addMessage({
         role: "assistant",
-        content: "我们先把这条日程补完整，确认后再保存。",
-        draft: { ...chatState.lastDraft, clarifyingQuestions: questions, missingFields: currentMissing },
-        missingFields: currentMissing,
-        canConfirmDraft: false,
+        tone: "error",
+        content: "请用户重新输入",
       });
       return;
     }
 
     if (!ensureConfigured()) return;
 
-    const nextContext = buildTaskPrompt({
-      taskContext: chatState.taskContext,
-      lastDraft: chatState.lastDraft,
-      missingFields: currentMissing,
-      text,
-    });
-    setChatState((state) => ({ ...state, taskContext: nextContext }));
     setLoadingKey("parse");
 
     try {
-      const draft = await parseTask(nextContext);
-      const missingFields = getDraftMissingFields(draft, nextContext);
-      const clarifyingQuestions = buildClarifyingQuestions(draft, missingFields);
+      const draft = await parseTask(text);
+      const missingFields = getDraftMissingFields(draft);
       const normalizedDraft: AiTaskDraft = {
         ...draft,
-        clarifyingQuestions,
+        clarifyingQuestions: [],
         missingFields,
       };
       const isComplete = missingFields.length === 0;
 
+      if (!isComplete) {
+        addMessage({
+          role: "assistant",
+          tone: "error",
+          content: "请用户重新输入",
+        });
+        return;
+      }
+
       addMessage({
         role: "assistant",
-        content: isComplete
-          ? "这条日程已经整理好了。你确认后，我再把它保存到日程里。"
-          : "还差几项信息，确认后再保存：",
+        content: "这条日程已经整理好了。你确认后，我再把它保存到日程里。",
         draft: normalizedDraft,
         missingFields,
-        canConfirmDraft: isComplete,
+        canConfirmDraft: true,
       });
-
-      setChatState((state) => ({
-        ...state,
-        taskContext: isComplete ? "" : nextContext,
-        lastDraft: isComplete ? null : normalizedDraft,
-      }));
-    } catch (error) {
+    } catch {
       addMessage({
         role: "assistant",
         tone: "error",
-        content: getFriendlyErrorMessage(error, "我暂时没能整理出日程，请补充更多信息后再试。"),
+        content: "请用户重新输入",
       });
     } finally {
       setLoadingKey("");
@@ -510,8 +431,6 @@ export function AiPlannerPage() {
       setChatState((state) => ({
         ...state,
         confirmedDraftIds: [...new Set([...state.confirmedDraftIds, messageId])],
-        taskContext: "",
-        lastDraft: null,
       }));
       addMessage({
         role: "assistant",
@@ -601,7 +520,7 @@ export function AiPlannerPage() {
                   event.currentTarget.form?.requestSubmit();
                 }
               }}
-              placeholder="例如：明天下午三点提醒我完成实验报告，很重要"
+              placeholder="例如：明天开始时间14点，结束时间16点，截止时间16点，提醒我考试，重要程度中，紧急程度中"
               rows={2}
             />
             <Button type="submit" disabled={busy || input.trim().length < 2} aria-label="发送">

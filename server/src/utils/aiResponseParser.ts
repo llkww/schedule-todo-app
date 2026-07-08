@@ -7,14 +7,11 @@ export const riskLevelSchema = z.enum(["low", "medium", "high"]);
 
 export const draftMissingFieldValues = [
   "title",
-  "description",
   "startTime",
   "endTime",
   "dueTime",
   "importance",
   "urgency",
-  "status",
-  "tags",
 ] as const;
 
 export const draftMissingFieldSchema = z.enum(draftMissingFieldValues);
@@ -179,23 +176,17 @@ function normalizeMissingField(value: unknown) {
   const normalized = value.trim();
   const map: Record<string, (typeof draftMissingFieldValues)[number]> = {
     title: "title",
-    description: "description",
     startTime: "startTime",
     endTime: "endTime",
     dueTime: "dueTime",
     importance: "importance",
     urgency: "urgency",
-    status: "status",
-    tags: "tags",
-    tag: "tags",
-    labels: "tags",
-    label: "tags",
     "标题": "title",
     "名称": "title",
     "任务标题": "title",
-    "描述": "description",
-    "备注": "description",
-    "任务描述": "description",
+    "内容": "title",
+    "事项": "title",
+    "待办事项": "title",
     "开始": "startTime",
     "开始时间": "startTime",
     "结束": "endTime",
@@ -207,8 +198,6 @@ function normalizeMissingField(value: unknown) {
     "重要程度": "importance",
     "紧急": "urgency",
     "紧急程度": "urgency",
-    "状态": "status",
-    "标签": "tags",
   };
 
   return map[normalized] ?? null;
@@ -291,6 +280,25 @@ export const parseTaskResponseSchema = z.object({
   clarifyingQuestions: arrayField(z.string().trim().min(1).max(240), 20).default([]),
   missingFields: missingFieldsSchema.default([]),
 });
+
+const taskDraftEnvelopeSchema = z.union([
+  z.object({ data: parseTaskResponseSchema }),
+  z.object({ result: parseTaskResponseSchema }),
+  z.object({ draft: parseTaskResponseSchema }),
+  z.object({ task: parseTaskResponseSchema }),
+  z.object({ schedule: parseTaskResponseSchema }),
+  parseTaskResponseSchema,
+]).transform((value) => {
+  if ("data" in value) return value.data;
+  if ("result" in value) return value.result;
+  if ("draft" in value) return value.draft;
+  if ("task" in value) return value.task;
+  if ("schedule" in value) return value.schedule;
+  return value;
+});
+
+export const parseTaskDraftResponseSchema: z.ZodSchema<z.infer<typeof parseTaskResponseSchema>> =
+  taskDraftEnvelopeSchema;
 
 export const summaryResponseSchema = z.object({
   range: z.enum(["today", "week"]),

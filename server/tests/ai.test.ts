@@ -334,6 +334,34 @@ describe("AI Planner API", () => {
     expect(afterCount).toBe(beforeCount);
   });
 
+  it("normalizes Chinese local hours when DeepSeek returns them as UTC Z", async () => {
+    const { token } = await registerUser("parse-timezone-ai@example.com");
+    mockDeepSeek({
+      title: "考试",
+      description: "",
+      startTime: "2026-07-09T14:00:00.000Z",
+      endTime: "2026-07-09T16:00:00.000Z",
+      dueTime: "2026-07-09T16:00:00.000Z",
+      importance: "medium",
+      urgency: "medium",
+      status: "pending",
+      suggestedTags: [],
+      confidence: 0.92,
+      clarifyingQuestions: [],
+      missingFields: [],
+    });
+
+    const response = await request(app)
+      .post("/api/ai/parse-task")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ text: "明天下午提醒我考试，开始时间14点，结束时间和截止时间16点，紧急程度中，重要程度中" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.startTime).toBe("2026-07-09T06:00:00.000Z");
+    expect(response.body.data.endTime).toBe("2026-07-09T08:00:00.000Z");
+    expect(response.body.data.dueTime).toBe("2026-07-09T08:00:00.000Z");
+  });
+
   it("accepts incomplete parse drafts with null text fields and many questions", async () => {
     const { token } = await registerUser("parse-incomplete-ai@example.com");
     mockDeepSeek({
@@ -346,17 +374,8 @@ describe("AI Planner API", () => {
       urgency: null,
       status: null,
       suggestedTags: [],
-      clarifyingQuestions: [
-        "请提供任务标题",
-        "请提供任务描述",
-        "请提供任务开始时间",
-        "请提供任务结束时间",
-        "请提供任务截止时间",
-        "请提供任务的重要程度",
-        "请提供任务的紧急程度",
-        "请提供任务状态",
-      ],
-      missingFields: ["title", "description", "时间", "labels", "unknown-field"],
+      clarifyingQuestions: [],
+      missingFields: ["title", "时间", "结束时间", "截止时间", "重要程度", "紧急程度", "unknown-field"],
     });
 
     const response = await request(app)
@@ -371,10 +390,13 @@ describe("AI Planner API", () => {
     expect(response.body.data.importance).toBe("medium");
     expect(response.body.data.urgency).toBe("medium");
     expect(response.body.data.status).toBe("pending");
-    expect(response.body.data.clarifyingQuestions).toHaveLength(8);
+    expect(response.body.data.clarifyingQuestions).toHaveLength(0);
     expect(response.body.data.missingFields).toContain("title");
     expect(response.body.data.missingFields).toContain("startTime");
-    expect(response.body.data.missingFields).toContain("tags");
+    expect(response.body.data.missingFields).toContain("endTime");
+    expect(response.body.data.missingFields).toContain("dueTime");
+    expect(response.body.data.missingFields).toContain("importance");
+    expect(response.body.data.missingFields).toContain("urgency");
   });
 
   it("summarizes only the current user's schedules and keeps backend computed counts", async () => {
