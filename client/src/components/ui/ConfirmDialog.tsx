@@ -7,7 +7,7 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Confirm",
+  confirmLabel = "确认",
   loading,
   onConfirm,
   onClose,
@@ -26,7 +26,7 @@ export function ConfirmDialog({
         <AlertTriangle aria-hidden="true" />
         <div className="confirm-dialog__actions">
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            取消
           </Button>
           <Button variant="danger" loading={loading} onClick={onConfirm}>
             {confirmLabel}

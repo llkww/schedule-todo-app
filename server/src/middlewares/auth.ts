@@ -13,14 +13,14 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   try {
     const header = req.headers.authorization;
     if (!header?.startsWith("Bearer ")) {
-      throw unauthorized("Authentication required");
+      throw unauthorized("请先登录");
     }
 
     const token = header.slice("Bearer ".length);
     const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
 
     if (!payload.sub) {
-      throw unauthorized("Authentication required");
+      throw unauthorized("请先登录");
     }
 
     const user = await prisma.user.findUnique({
@@ -29,12 +29,12 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     });
 
     if (!user) {
-      throw unauthorized("Authentication required");
+      throw unauthorized("请先登录");
     }
 
     req.user = user;
     next();
   } catch {
-    next(unauthorized("Authentication required"));
+    next(unauthorized("请先登录"));
   }
 }

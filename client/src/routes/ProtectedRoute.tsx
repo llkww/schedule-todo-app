@@ -8,7 +8,7 @@ export function ProtectedRoute() {
   const location = useLocation();
 
   if (loading) {
-    return <LoadingSpinner label="Checking session" />;
+    return <LoadingSpinner label="正在检查登录状态" />;
   }
 
   if (!user) {
@@ -22,7 +22,7 @@ export function PublicOnlyRoute() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner label="Checking session" />;
+    return <LoadingSpinner label="正在检查登录状态" />;
   }
 
   if (user) {

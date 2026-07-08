@@ -31,7 +31,7 @@ export function TagsPage() {
     try {
       setTags(await fetchTags());
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Failed to load tags");
+      setError(requestError instanceof Error ? requestError.message : "标签加载失败");
     } finally {
       setLoading(false);
     }
@@ -56,11 +56,11 @@ export function TagsPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!values.name.trim()) {
-      setFormError("Tag name is required");
+      setFormError("请输入标签名称");
       return;
     }
     if (!/^#[0-9a-fA-F]{6}$/.test(values.color)) {
-      setFormError("Use a valid hex color");
+      setFormError("请输入有效的十六进制颜色");
       return;
     }
 
@@ -69,15 +69,15 @@ export function TagsPage() {
     try {
       if (editing) {
         await updateTag(editing.id, { name: values.name.trim(), color: values.color });
-        toast.success("Tag updated");
+        toast.success("标签已更新");
       } else {
         await createTag({ name: values.name.trim(), color: values.color });
-        toast.success("Tag created");
+        toast.success("标签已创建");
       }
       resetForm();
       await load();
     } catch (requestError) {
-      setFormError(requestError instanceof Error ? requestError.message : "Save failed");
+      setFormError(requestError instanceof Error ? requestError.message : "保存失败");
     } finally {
       setSaving(false);
     }
@@ -88,11 +88,11 @@ export function TagsPage() {
     setSaving(true);
     try {
       await deleteTag(deleteTarget.id);
-      toast.success("Tag deleted");
+      toast.success("标签已删除");
       setDeleteTarget(null);
       await load();
     } catch (requestError) {
-      toast.error(requestError instanceof Error ? requestError.message : "Delete failed");
+      toast.error(requestError instanceof Error ? requestError.message : "删除失败");
     } finally {
       setSaving(false);
     }
@@ -101,31 +101,31 @@ export function TagsPage() {
   return (
     <>
       <PageHeader
-        title="Tags"
-        description="Maintain a calm tag system for filtering schedules and scanning context."
+        title="标签"
+        description="维护清晰的标签体系，便于筛选日程和快速理解上下文。"
       />
       <div className="tag-page-grid">
-        <Card title={editing ? "Edit tag" : "New tag"} description="Names are unique within your account.">
+        <Card title={editing ? "编辑标签" : "新建标签"} description="标签名称在你的账号内保持唯一。">
           <form className="form-stack" onSubmit={handleSubmit} noValidate>
             {formError ? <div className="form-alert">{formError}</div> : null}
             <Input
-              label="Tag name"
+              label="标签名称"
               name="name"
               value={values.name}
               onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
               required
             />
             <Input
-              label="Custom color"
+              label="自定义颜色"
               name="color"
               value={values.color}
               onChange={(event) => setValues((current) => ({ ...current, color: event.target.value }))}
               required
             />
-            <div className="color-swatches" aria-label="Preset tag colors">
+            <div className="color-swatches" aria-label="预设标签颜色">
               {colorOptions.map((color) => (
                 <button
-                  aria-label={`Use color ${color}`}
+                  aria-label={`使用颜色 ${color}`}
                   className={values.color === color ? "color-swatch color-swatch--selected" : "color-swatch"}
                   key={color}
                   onClick={() => setValues((current) => ({ ...current, color }))}
@@ -137,38 +137,38 @@ export function TagsPage() {
             <div className="form-actions">
               {editing ? (
                 <Button variant="secondary" type="button" onClick={resetForm}>
-                  Cancel
+                  取消
                 </Button>
               ) : null}
               <Button type="submit" loading={saving} icon={<Plus aria-hidden="true" />}>
-                {editing ? "Save tag" : "Create tag"}
+                {editing ? "保存标签" : "创建标签"}
               </Button>
             </div>
           </form>
         </Card>
 
-        <Card title="Tag library" description="Each tag shows its current schedule usage.">
+        <Card title="标签库" description="每个标签都会显示当前关联的日程数量。">
           {loading ? <SkeletonList rows={3} /> : null}
           {!loading && error ? (
-            <EmptyState title="Tags could not load" description={error} action={<Button onClick={() => void load()}>Retry</Button>} />
+            <EmptyState title="标签无法加载" description={error} action={<Button onClick={() => void load()}>重试</Button>} />
           ) : null}
           {!loading && !error && tags.length === 0 ? (
-            <EmptyState title="No tags yet" description="Create your first tag to group schedules." />
+            <EmptyState title="还没有标签" description="创建第一个标签来归类日程。" />
           ) : null}
           {!loading && !error && tags.length > 0 ? (
             <div className="tag-list">
               {tags.map((tag) => (
                 <div className="tag-row" key={tag.id}>
                   <TagPill color={tag.color} name={tag.name} />
-                  <span>{tag.scheduleCount ?? 0} schedules</span>
+                  <span>{tag.scheduleCount ?? 0} 个日程</span>
                   <div className="tag-row__actions">
                     <Button variant="ghost" size="sm" onClick={() => startEdit(tag)}>
                       <Edit3 aria-hidden="true" />
-                      Edit
+                      编辑
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(tag)}>
                       <Trash2 aria-hidden="true" />
-                      Delete
+                      删除
                     </Button>
                   </div>
                 </div>
@@ -180,9 +180,9 @@ export function TagsPage() {
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete tag"
-        description={`Delete "${deleteTarget?.name ?? "this tag"}"? Existing schedules will keep their other data.`}
-        confirmLabel="Delete"
+        title="删除标签"
+        description={`确定删除“${deleteTarget?.name ?? "此标签"}”吗？已有日程会保留其他数据。`}
+        confirmLabel="删除"
         loading={saving}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => void confirmDelete()}

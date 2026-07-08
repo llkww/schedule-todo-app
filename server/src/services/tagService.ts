@@ -40,7 +40,7 @@ async function assertUniqueName(userId: string, name: string, excludeId?: string
   });
 
   if (existing) {
-    throw conflict("Tag name already exists");
+    throw conflict("标签名称已存在");
   }
 }
 
@@ -76,7 +76,7 @@ export async function updateTag(userId: string, id: string, input: TagInput) {
   });
 
   if (!existing) {
-    throw notFound("Tag not found");
+    throw notFound("标签不存在");
   }
 
   if (input.name) {
@@ -99,7 +99,7 @@ export async function deleteTag(userId: string, id: string) {
   });
 
   if (!existing) {
-    throw notFound("Tag not found");
+    throw notFound("标签不存在");
   }
 
   await prisma.tag.delete({ where: { id } });

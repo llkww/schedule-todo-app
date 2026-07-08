@@ -12,7 +12,7 @@ export function AppLayout() {
   return (
     <div className="app-layout">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
-      {menuOpen ? <button className="layout-scrim" onClick={() => setMenuOpen(false)} aria-label="Close menu" /> : null}
+      {menuOpen ? <button className="layout-scrim" onClick={() => setMenuOpen(false)} aria-label="关闭菜单" /> : null}
       <div className="app-layout__main">
         <Topbar user={user} onMenu={() => setMenuOpen(true)} />
         <main className="content-shell">

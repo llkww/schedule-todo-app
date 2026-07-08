@@ -1,4 +1,5 @@
 import { addDays, addMonths, format, isSameDay, isSameMonth, parseISO, subMonths } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -32,7 +33,7 @@ export function CalendarPage() {
       const data = await fetchSchedules({ page: 1, pageSize: 100, sortBy: "dueTime", sortDir: "asc" });
       setSchedules(data.items);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Calendar failed to load");
+      setError(requestError instanceof Error ? requestError.message : "日历加载失败");
     } finally {
       setLoading(false);
     }
@@ -56,12 +57,12 @@ export function CalendarPage() {
   return (
     <>
       <PageHeader
-        title="Calendar"
-        description="Scan the month and open the work attached to each day."
+        title="日历"
+        description="按月查看日程，并打开每一天关联的事项。"
         actions={
           <Link className="button button--primary" to="/schedules/new">
             <Plus aria-hidden="true" />
-            New schedule
+            新建日程
           </Link>
         }
       />
@@ -70,23 +71,23 @@ export function CalendarPage() {
         <div className="calendar-toolbar">
           <Button variant="secondary" onClick={() => setMonth((value) => subMonths(value, 1))}>
             <ChevronLeft aria-hidden="true" />
-            Previous
+            上个月
           </Button>
-          <strong>{format(month, "MMMM yyyy")}</strong>
+          <strong>{format(month, "yyyy年M月", { locale: zhCN })}</strong>
           <Button variant="secondary" onClick={() => setMonth((value) => addMonths(value, 1))}>
-            Next
+            下个月
             <ChevronRight aria-hidden="true" />
           </Button>
         </div>
 
         {loading ? <SkeletonList rows={2} /> : null}
         {!loading && error ? (
-          <EmptyState title="Calendar could not load" description={error} action={<Button onClick={() => void load()}>Retry</Button>} />
+          <EmptyState title="日历无法加载" description={error} action={<Button onClick={() => void load()}>重试</Button>} />
         ) : null}
         {!loading && !error ? (
           <div className="calendar-layout">
             <div className="calendar-grid">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
                 <span className="calendar-weekday" key={day}>
                   {day}
                 </span>
@@ -110,8 +111,8 @@ export function CalendarPage() {
               })}
             </div>
             <aside className="selected-day">
-              <h2>{format(selected, "MMMM d, yyyy")}</h2>
-              {selectedTasks.length === 0 ? <p className="muted-text">No schedules on this date.</p> : null}
+              <h2>{format(selected, "yyyy年M月d日", { locale: zhCN })}</h2>
+              {selectedTasks.length === 0 ? <p className="muted-text">当天没有日程。</p> : null}
               <div className="preview-list">
                 {selectedTasks.map((schedule) => (
                   <TaskCard compact key={schedule.id} schedule={schedule} />

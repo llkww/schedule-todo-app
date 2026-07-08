@@ -51,7 +51,7 @@ export function ScheduleListPage() {
       setData(scheduleData);
       setTags(tagData);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Failed to load schedules");
+      setError(requestError instanceof Error ? requestError.message : "日程加载失败");
     } finally {
       setLoading(false);
     }
@@ -72,10 +72,10 @@ export function ScheduleListPage() {
   async function toggleCompleted(schedule: Schedule) {
     try {
       await setScheduleCompleted(schedule.id, !schedule.completed);
-      toast.success(schedule.completed ? "Schedule reopened" : "Schedule completed");
+      toast.success(schedule.completed ? "日程已重新打开" : "日程已完成");
       await load();
     } catch (requestError) {
-      toast.error(requestError instanceof Error ? requestError.message : "Update failed");
+      toast.error(requestError instanceof Error ? requestError.message : "更新失败");
     }
   }
 
@@ -84,11 +84,11 @@ export function ScheduleListPage() {
     setDeleting(true);
     try {
       await deleteSchedule(deleteTarget.id);
-      toast.success("Schedule deleted");
+      toast.success("日程已删除");
       setDeleteTarget(null);
       await load();
     } catch (requestError) {
-      toast.error(requestError instanceof Error ? requestError.message : "Delete failed");
+      toast.error(requestError instanceof Error ? requestError.message : "删除失败");
     } finally {
       setDeleting(false);
     }
@@ -99,64 +99,64 @@ export function ScheduleListPage() {
   return (
     <>
       <PageHeader
-        title="Schedules"
-        description="Search, filter, and keep every commitment scoped to your account."
+        title="日程"
+        description="搜索、筛选并管理只属于你账号的每一项安排。"
         actions={
           <Link className="button button--primary" to="/schedules/new">
             <Plus aria-hidden="true" />
-            New schedule
+            新建日程
           </Link>
         }
       />
 
       <FilterBar>
         <Input
-          label="Search"
+          label="搜索"
           name="search"
           value={query.search ?? ""}
           onChange={(event) => updateQuery("search", event.target.value)}
         />
         <Select
-          label="Status"
+          label="状态"
           name="status"
           value={query.status ?? ""}
           onChange={(event) => updateQuery("status", event.target.value)}
         >
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="in_progress">In progress</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="">全部状态</option>
+          <option value="pending">待处理</option>
+          <option value="in_progress">进行中</option>
+          <option value="completed">已完成</option>
+          <option value="cancelled">已取消</option>
         </Select>
         <Select
-          label="Importance"
+          label="重要程度"
           name="importance"
           value={query.importance ?? ""}
           onChange={(event) => updateQuery("importance", event.target.value)}
         >
-          <option value="">Any importance</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="">全部重要程度</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
         </Select>
         <Select
-          label="Urgency"
+          label="紧急程度"
           name="urgency"
           value={query.urgency ?? ""}
           onChange={(event) => updateQuery("urgency", event.target.value)}
         >
-          <option value="">Any urgency</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="">全部紧急程度</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
         </Select>
         <Select
-          label="Tag"
+          label="标签"
           name="tagId"
           value={query.tagId ?? ""}
           onChange={(event) => updateQuery("tagId", event.target.value)}
         >
-          <option value="">All tags</option>
+          <option value="">全部标签</option>
           {tags.map((tag) => (
             <option key={tag.id} value={tag.id}>
               {tag.name}
@@ -164,40 +164,40 @@ export function ScheduleListPage() {
           ))}
         </Select>
         <Select
-          label="Sort"
+          label="排序"
           name="sortBy"
           value={query.sortBy ?? "createdAt"}
           onChange={(event) => updateQuery("sortBy", event.target.value)}
         >
-          <option value="createdAt">Created</option>
-          <option value="updatedAt">Updated</option>
-          <option value="dueTime">Due time</option>
-          <option value="startTime">Start time</option>
-          <option value="importance">Importance</option>
-          <option value="urgency">Urgency</option>
+          <option value="createdAt">创建时间</option>
+          <option value="updatedAt">更新时间</option>
+          <option value="dueTime">截止时间</option>
+          <option value="startTime">开始时间</option>
+          <option value="importance">重要程度</option>
+          <option value="urgency">紧急程度</option>
         </Select>
         <Button variant="secondary" type="button" onClick={() => setQuery(defaultQuery)}>
           <RotateCcw aria-hidden="true" />
-          Clear
+          清空
         </Button>
       </FilterBar>
 
       {loading ? <SkeletonList rows={4} /> : null}
       {!loading && error ? (
         <EmptyState
-          title="Schedules could not load"
+          title="日程无法加载"
           description={error}
-          action={<Button onClick={() => void load()}>Retry</Button>}
+          action={<Button onClick={() => void load()}>重试</Button>}
         />
       ) : null}
       {!loading && !error && schedules.length === 0 ? (
         <EmptyState
-          title="No schedules found"
-          description="Create a schedule or clear filters to see more results."
+          title="没有找到日程"
+          description="新建日程或清空筛选条件以查看更多结果。"
           action={
             <Link className="button button--primary" to="/schedules/new">
               <Plus aria-hidden="true" />
-              New schedule
+              新建日程
             </Link>
           }
         />
@@ -210,14 +210,14 @@ export function ScheduleListPage() {
               <div className="task-list__actions">
                 <Button variant="secondary" size="sm" onClick={() => void toggleCompleted(schedule)}>
                   <Check aria-hidden="true" />
-                  {schedule.completed ? "Reopen" : "Complete"}
+                  {schedule.completed ? "重新打开" : "完成"}
                 </Button>
                 <Link className="button button--ghost button--sm" to={`/schedules/${schedule.id}/edit`}>
-                  Edit
+                  编辑
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(schedule)}>
                   <Trash2 aria-hidden="true" />
-                  Delete
+                  删除
                 </Button>
               </div>
             </div>
@@ -232,26 +232,26 @@ export function ScheduleListPage() {
             disabled={data.pagination.page <= 1}
             onClick={() => updatePage(Math.max(1, data.pagination.page - 1))}
           >
-            Previous
+            上一页
           </Button>
           <span>
-            Page {data.pagination.page} of {Math.max(data.pagination.totalPages, 1)}
+            第 {data.pagination.page} 页 / 共 {Math.max(data.pagination.totalPages, 1)} 页
           </span>
           <Button
             variant="secondary"
             disabled={data.pagination.page >= data.pagination.totalPages}
             onClick={() => updatePage(data.pagination.page + 1)}
           >
-            Next
+            下一页
           </Button>
         </div>
       ) : null}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete schedule"
-        description={`Delete "${deleteTarget?.title ?? "this schedule"}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title="删除日程"
+        description={`确定删除“${deleteTarget?.title ?? "此日程"}”吗？此操作无法撤销。`}
+        confirmLabel="删除"
         loading={deleting}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => void confirmDelete()}

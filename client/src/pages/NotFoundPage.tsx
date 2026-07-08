@@ -4,12 +4,12 @@ export function NotFoundPage() {
   return (
     <main className="not-found-page">
       <div className="brand-mark brand-mark--large" aria-hidden="true">
-        S
+        日
       </div>
-      <h1>Page not found</h1>
-      <p>The page may have moved, or the route does not exist in this workspace.</p>
+      <h1>页面未找到</h1>
+      <p>该页面可能已移动，或当前工作区中不存在此路径。</p>
       <Link className="button button--primary" to="/">
-        Back to dashboard
+        返回仪表盘
       </Link>
     </main>
   );

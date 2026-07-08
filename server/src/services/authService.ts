@@ -49,7 +49,7 @@ export async function registerUser(input: RegisterInput) {
   });
 
   if (existing) {
-    throw conflict("Email is already registered");
+    throw conflict("该邮箱已注册");
   }
 
   const passwordHash = await bcrypt.hash(input.password, 12);
@@ -80,12 +80,12 @@ export async function loginUser(input: LoginInput) {
   });
 
   if (!user) {
-    throw unauthorized("Invalid email or password");
+    throw unauthorized("邮箱或密码错误");
   }
 
   const isValid = await bcrypt.compare(input.password, user.passwordHash);
   if (!isValid) {
-    throw unauthorized("Invalid email or password");
+    throw unauthorized("邮箱或密码错误");
   }
 
   return {
@@ -107,7 +107,7 @@ export async function getCurrentUser(userId: string) {
   });
 
   if (!user) {
-    throw unauthorized("Authentication required");
+    throw unauthorized("请先登录");
   }
 
   return toSafeUser(user);

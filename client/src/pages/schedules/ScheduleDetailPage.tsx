@@ -32,7 +32,7 @@ export function ScheduleDetailPage() {
     try {
       setSchedule(await fetchSchedule(id));
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Failed to load schedule");
+      setError(requestError instanceof Error ? requestError.message : "日程加载失败");
     } finally {
       setLoading(false);
     }
@@ -48,9 +48,9 @@ export function ScheduleDetailPage() {
     try {
       const updated = await setScheduleCompleted(schedule.id, !schedule.completed);
       setSchedule(updated);
-      toast.success(updated.completed ? "Schedule completed" : "Schedule reopened");
+      toast.success(updated.completed ? "日程已完成" : "日程已重新打开");
     } catch (requestError) {
-      toast.error(requestError instanceof Error ? requestError.message : "Update failed");
+      toast.error(requestError instanceof Error ? requestError.message : "更新失败");
     } finally {
       setBusy(false);
     }
@@ -61,22 +61,22 @@ export function ScheduleDetailPage() {
     setBusy(true);
     try {
       await deleteSchedule(schedule.id);
-      toast.success("Schedule deleted");
+      toast.success("日程已删除");
       navigate("/schedules", { replace: true });
     } catch (requestError) {
-      toast.error(requestError instanceof Error ? requestError.message : "Delete failed");
+      toast.error(requestError instanceof Error ? requestError.message : "删除失败");
     } finally {
       setBusy(false);
     }
   }
 
-  if (loading) return <LoadingSpinner label="Loading schedule" />;
+  if (loading) return <LoadingSpinner label="正在加载日程" />;
   if (error || !schedule) {
     return (
       <EmptyState
-        title="Schedule not available"
-        description={error || "This schedule could not be found."}
-        action={<Button onClick={() => void load()}>Retry</Button>}
+        title="日程不可用"
+        description={error || "未找到此日程。"}
+        action={<Button onClick={() => void load()}>重试</Button>}
       />
     );
   }
@@ -87,27 +87,27 @@ export function ScheduleDetailPage() {
     <>
       <PageHeader
         title={schedule.title}
-        description="Review the full schedule record and update its state."
+        description="查看完整日程记录，并按需要更新状态。"
         actions={
           <>
             <Button variant="secondary" loading={busy} onClick={() => void toggleCompleted()}>
               <CheckCircle2 aria-hidden="true" />
-              {schedule.completed ? "Reopen" : "Complete"}
+              {schedule.completed ? "重新打开" : "完成"}
             </Button>
             <Link className="button button--primary" to={`/schedules/${schedule.id}/edit`}>
               <Pencil aria-hidden="true" />
-              Edit
+              编辑
             </Link>
           </>
         }
       />
 
       <div className="detail-grid">
-        <Card title="Overview">
+        <Card title="概览">
           <div className="detail-stack">
-            {overdue ? <div className="form-alert">This schedule is overdue.</div> : null}
+            {overdue ? <div className="form-alert">此日程已逾期。</div> : null}
             <p className="detail-description">
-              {schedule.description || "No description has been added."}
+              {schedule.description || "尚未添加描述。"}
             </p>
             <div className="task-card__badges">
               <StatusBadge value={schedule.status} />
@@ -118,50 +118,50 @@ export function ScheduleDetailPage() {
               {schedule.tags.length > 0 ? (
                 schedule.tags.map((tag) => <TagPill key={tag.id} color={tag.color} name={tag.name} />)
               ) : (
-                <span className="muted-text">No tags</span>
+                <span className="muted-text">无标签</span>
               )}
             </div>
           </div>
         </Card>
 
-        <Card title="Timing">
+        <Card title="时间">
           <dl className="detail-list">
             <div>
-              <dt>Start</dt>
+              <dt>开始</dt>
               <dd>{formatDateTime(schedule.startTime)}</dd>
             </div>
             <div>
-              <dt>End</dt>
+              <dt>结束</dt>
               <dd>{formatDateTime(schedule.endTime)}</dd>
             </div>
             <div>
-              <dt>Due</dt>
+              <dt>截止</dt>
               <dd>{formatDateTime(schedule.dueTime)}</dd>
             </div>
             <div>
-              <dt>Created</dt>
+              <dt>创建</dt>
               <dd>{formatDateTime(schedule.createdAt)}</dd>
             </div>
             <div>
-              <dt>Updated</dt>
+              <dt>更新</dt>
               <dd>{formatDateTime(schedule.updatedAt)}</dd>
             </div>
           </dl>
         </Card>
       </div>
 
-      <Card className="danger-zone" title="Danger zone" description="Delete this schedule only if it is no longer needed.">
+      <Card className="danger-zone" title="危险操作" description="仅在不再需要此日程时删除。">
         <Button variant="danger" onClick={() => setDeleteOpen(true)}>
           <Trash2 aria-hidden="true" />
-          Delete schedule
+          删除日程
         </Button>
       </Card>
 
       <ConfirmDialog
         open={deleteOpen}
-        title="Delete schedule"
-        description={`Delete "${schedule.title}"? This cannot be undone.`}
-        confirmLabel="Delete"
+        title="删除日程"
+        description={`确定删除“${schedule.title}”吗？此操作无法撤销。`}
+        confirmLabel="删除"
         loading={busy}
         onClose={() => setDeleteOpen(false)}
         onConfirm={() => void confirmDelete()}

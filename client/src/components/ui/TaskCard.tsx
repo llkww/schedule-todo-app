@@ -25,14 +25,14 @@ export function TaskCard({ schedule, compact = false }: { schedule: Schedule; co
           <h3>{schedule.title}</h3>
           {schedule.description && !compact ? <p>{schedule.description}</p> : null}
         </div>
-        {schedule.completed ? <CheckCircle2 aria-label="Completed" /> : null}
+        {schedule.completed ? <CheckCircle2 aria-label="已完成" /> : null}
       </div>
       <div className="task-card__meta">
         <span>
           <CalendarClock aria-hidden="true" />
           {formatDateTime(schedule.dueTime ?? schedule.startTime)}
         </span>
-        {overdue ? <span className="task-card__overdue">Overdue</span> : null}
+        {overdue ? <span className="task-card__overdue">已逾期</span> : null}
       </div>
       {!compact ? (
         <div className="task-card__badges">

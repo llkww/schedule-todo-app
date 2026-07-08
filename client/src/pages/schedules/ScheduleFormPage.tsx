@@ -80,7 +80,7 @@ export function ScheduleFormPage() {
         });
       }
     } catch (error) {
-      setErrors({ form: error instanceof Error ? error.message : "Failed to load form" });
+      setErrors({ form: error instanceof Error ? error.message : "表单加载失败" });
     } finally {
       setLoading(false);
     }
@@ -105,11 +105,11 @@ export function ScheduleFormPage() {
 
   function validate() {
     const next: FormErrors = {};
-    if (!values.title.trim()) next.title = "Title is required";
-    if (values.title.length > 120) next.title = "Title is too long";
-    if (values.description.length > 2000) next.description = "Description is too long";
+    if (!values.title.trim()) next.title = "请输入标题";
+    if (values.title.length > 120) next.title = "标题过长";
+    if (values.description.length > 2000) next.description = "描述过长";
     if (values.startTime && values.endTime && new Date(values.endTime) < new Date(values.startTime)) {
-      next.endTime = "End time must be after start time";
+      next.endTime = "结束时间必须晚于开始时间";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -138,29 +138,29 @@ export function ScheduleFormPage() {
     setErrors({});
     try {
       const result = id ? await updateSchedule(id, toPayload()) : await createSchedule(toPayload());
-      toast.success(id ? "Schedule updated" : "Schedule created");
+      toast.success(id ? "日程已更新" : "日程已创建");
       navigate(`/schedules/${result.id}`);
     } catch (error) {
-      setErrors({ form: error instanceof Error ? error.message : "Save failed" });
+      setErrors({ form: error instanceof Error ? error.message : "保存失败" });
     } finally {
       setSaving(false);
     }
   }
 
-  if (loading) return <LoadingSpinner label="Loading schedule form" />;
+  if (loading) return <LoadingSpinner label="正在加载日程表单" />;
 
   return (
     <>
       <PageHeader
-        title={isEditing ? "Edit schedule" : "New schedule"}
-        description="Capture the work, then classify it by importance, urgency, and tags."
+        title={isEditing ? "编辑日程" : "新建日程"}
+        description="记录事项内容，并按重要程度、紧急程度和标签进行分类。"
       />
       <form className="form-grid" onSubmit={handleSubmit} noValidate>
-        <Card title="Schedule details" description="Required fields are marked and validated before save.">
+        <Card title="日程详情" description="必填内容会在保存前进行校验。">
           {errors.form ? <div className="form-alert">{errors.form}</div> : null}
           <div className="form-stack">
             <Input
-              label="Title"
+              label="标题"
               name="title"
               value={values.title}
               onChange={(event) => update("title", event.target.value)}
@@ -168,7 +168,7 @@ export function ScheduleFormPage() {
               required
             />
             <Textarea
-              label="Description"
+              label="描述"
               name="description"
               value={values.description}
               onChange={(event) => update("description", event.target.value)}
@@ -176,14 +176,14 @@ export function ScheduleFormPage() {
             />
             <div className="responsive-grid responsive-grid--three">
               <Input
-                label="Start time"
+                label="开始时间"
                 name="startTime"
                 type="datetime-local"
                 value={values.startTime}
                 onChange={(event) => update("startTime", event.target.value)}
               />
               <Input
-                label="End time"
+                label="结束时间"
                 name="endTime"
                 type="datetime-local"
                 value={values.endTime}
@@ -191,7 +191,7 @@ export function ScheduleFormPage() {
                 error={errors.endTime}
               />
               <Input
-                label="Due time"
+                label="截止时间"
                 name="dueTime"
                 type="datetime-local"
                 value={values.dueTime}
@@ -200,43 +200,43 @@ export function ScheduleFormPage() {
             </div>
             <div className="responsive-grid responsive-grid--three">
               <Select
-                label="Importance"
+                label="重要程度"
                 name="importance"
                 value={values.importance}
                 onChange={(event) => update("importance", event.target.value as Importance)}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">低</option>
+                <option value="medium">中</option>
+                <option value="high">高</option>
               </Select>
               <Select
-                label="Urgency"
+                label="紧急程度"
                 name="urgency"
                 value={values.urgency}
                 onChange={(event) => update("urgency", event.target.value as Urgency)}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">低</option>
+                <option value="medium">中</option>
+                <option value="high">高</option>
               </Select>
               <Select
-                label="Status"
+                label="状态"
                 name="status"
                 value={values.status}
                 onChange={(event) => update("status", event.target.value as ScheduleStatus)}
               >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In progress</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="pending">待处理</option>
+                <option value="in_progress">进行中</option>
+                <option value="completed">已完成</option>
+                <option value="cancelled">已取消</option>
               </Select>
             </div>
           </div>
         </Card>
 
-        <Card title="Tags" description="Use tags to group schedules without changing priority.">
+        <Card title="标签" description="使用标签组织日程，不影响优先级判断。">
           <div className="tag-selector">
-            {tags.length === 0 ? <p className="muted-text">No tags yet. You can add them later.</p> : null}
+            {tags.length === 0 ? <p className="muted-text">还没有标签，你可以稍后添加。</p> : null}
             {tags.map((tag) => (
               <button
                 className={values.tagIds.includes(tag.id) ? "tag-option tag-option--selected" : "tag-option"}
@@ -249,7 +249,7 @@ export function ScheduleFormPage() {
             ))}
           </div>
           {selectedTags.length > 0 ? (
-            <div className="selected-tags" aria-label="Selected tags">
+            <div className="selected-tags" aria-label="已选择的标签">
               {selectedTags.map((tag) => (
                 <TagPill key={tag.id} color={tag.color} name={tag.name} />
               ))}
@@ -259,10 +259,10 @@ export function ScheduleFormPage() {
 
         <div className="form-actions">
           <Link className="button button--secondary" to="/schedules">
-            Cancel
+            取消
           </Link>
           <Button type="submit" loading={saving} icon={<Save aria-hidden="true" />}>
-            Save schedule
+            保存日程
           </Button>
         </div>
       </form>

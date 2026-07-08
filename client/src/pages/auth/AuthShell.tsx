@@ -4,27 +4,26 @@ import { CalendarCheck2, Grid2X2, Tags } from "lucide-react";
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <main className="auth-page">
-      <section className="auth-panel" aria-label="Product overview">
+      <section className="auth-panel" aria-label="产品概览">
         <div className="brand-mark brand-mark--large" aria-hidden="true">
-          S
+          日
         </div>
-        <h1>Schedule Todo App</h1>
+        <h1>日程待办</h1>
         <p>
-          A focused workspace for planning deadlines, tagging work, and deciding what deserves
-          attention first.
+          一个专注的私人工作区，用来规划截止时间、整理标签，并判断哪些事情最值得优先处理。
         </p>
         <div className="auth-panel__features">
           <span>
             <CalendarCheck2 aria-hidden="true" />
-            Calendar planning
+            日历规划
           </span>
           <span>
             <Grid2X2 aria-hidden="true" />
-            Priority matrix
+            优先级四象限
           </span>
           <span>
             <Tags aria-hidden="true" />
-            Calm tagging
+            清晰标签
           </span>
         </div>
       </section>

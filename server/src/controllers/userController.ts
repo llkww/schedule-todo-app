@@ -14,10 +14,10 @@ export async function me(req: Request, res: Response) {
 
 export async function updateMe(req: Request, res: Response) {
   const user = await updateUserProfile(req.user!.id, req.body);
-  return sendSuccess(res, { user }, "Profile updated");
+  return sendSuccess(res, { user }, "个人资料已更新");
 }
 
 export async function changePassword(req: Request, res: Response) {
   const result = await updateUserPassword(req.user!.id, req.body);
-  return sendSuccess(res, result, "Password updated");
+  return sendSuccess(res, result, "密码已更新");
 }

@@ -10,15 +10,15 @@ export async function list(req: Request, res: Response) {
 
 export async function create(req: Request, res: Response) {
   const result = await createTag(req.user!.id, req.body);
-  return sendSuccess(res, result, "Tag created", 201);
+  return sendSuccess(res, result, "标签创建成功", 201);
 }
 
 export async function update(req: Request, res: Response) {
   const result = await updateTag(req.user!.id, req.params.id as string, req.body);
-  return sendSuccess(res, result, "Tag updated");
+  return sendSuccess(res, result, "标签更新成功");
 }
 
 export async function remove(req: Request, res: Response) {
   const result = await deleteTag(req.user!.id, req.params.id as string);
-  return sendSuccess(res, result, "Tag deleted");
+  return sendSuccess(res, result, "标签已删除");
 }

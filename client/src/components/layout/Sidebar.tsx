@@ -13,12 +13,12 @@ import { cn } from "../../lib/cn";
 import { Button } from "../ui/Button";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: Home },
-  { to: "/schedules", label: "Schedules", icon: CheckSquare },
-  { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/matrix", label: "Matrix", icon: Grid2X2 },
-  { to: "/tags", label: "Tags", icon: Tags },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/", label: "仪表盘", icon: Home },
+  { to: "/schedules", label: "日程", icon: CheckSquare },
+  { to: "/calendar", label: "日历", icon: CalendarDays },
+  { to: "/matrix", label: "四象限", icon: Grid2X2 },
+  { to: "/tags", label: "标签", icon: Tags },
+  { to: "/settings", label: "设置", icon: Settings },
 ];
 
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -26,17 +26,17 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     <aside className={cn("sidebar", open && "sidebar--open")}>
       <div className="sidebar__header">
         <div className="brand-mark" aria-hidden="true">
-          S
+          日
         </div>
         <div>
-          <strong>Schedule</strong>
-          <span>Todo App</span>
+          <strong>日程</strong>
+          <span>待办</span>
         </div>
-        <Button className="sidebar__close" variant="ghost" size="sm" onClick={onClose} aria-label="Close menu">
+        <Button className="sidebar__close" variant="ghost" size="sm" onClick={onClose} aria-label="关闭菜单">
           <X aria-hidden="true" />
         </Button>
       </div>
-      <nav className="sidebar__nav" aria-label="Primary navigation">
+      <nav className="sidebar__nav" aria-label="主导航">
         {navItems.map((item) => (
           <NavLink
             key={item.to}

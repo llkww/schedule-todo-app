@@ -9,13 +9,13 @@ const optionalDateSchema = z.preprocess((value) => {
 
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? value : date;
-}, z.date({ message: "Invalid date" }).optional());
+}, z.date({ message: "日期无效" }).optional());
 
-const idArraySchema = z.array(z.string().min(1)).max(20, "At most 20 tags can be attached").optional();
+const idArraySchema = z.array(z.string().min(1)).max(20, "最多可关联 20 个标签").optional();
 
 const scheduleBaseSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(120, "Title is too long"),
-  description: z.string().trim().max(2000, "Description is too long").optional().or(z.literal("")),
+  title: z.string().trim().min(1, "请输入标题").max(120, "标题过长"),
+  description: z.string().trim().max(2000, "描述过长").optional().or(z.literal("")),
   startTime: optionalDateSchema,
   endTime: optionalDateSchema,
   dueTime: optionalDateSchema,
@@ -34,19 +34,19 @@ function validateDateOrder<T extends { startTime?: Date; endTime?: Date }>(data:
 }
 
 export const createScheduleSchema = scheduleBaseSchema.refine(validateDateOrder, {
-  message: "End time must be after start time",
+  message: "结束时间必须晚于开始时间",
   path: ["endTime"],
 });
 
 export const updateScheduleSchema = scheduleBaseSchema
   .partial()
   .refine(validateDateOrder, {
-    message: "End time must be after start time",
+    message: "结束时间必须晚于开始时间",
     path: ["endTime"],
   });
 
 export const scheduleIdSchema = z.object({
-  id: z.string().min(1, "Schedule id is required"),
+  id: z.string().min(1, "缺少日程 ID"),
 });
 
 const queryBoolean = z.preprocess((value) => {

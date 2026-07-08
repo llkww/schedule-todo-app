@@ -1,4 +1,5 @@
 import type { ScheduleStatus } from "../../types/domain";
+import { statusLabels } from "../../utils/labels";
 import { Badge } from "./Badge";
 
 export function StatusBadge({ value }: { value: ScheduleStatus }) {
@@ -11,6 +12,5 @@ export function StatusBadge({ value }: { value: ScheduleStatus }) {
           ? "primary"
           : "warning";
 
-  const label = value.replace("_", " ");
-  return <Badge tone={tone}>Status: {label}</Badge>;
+  return <Badge tone={tone}>状态：{statusLabels[value]}</Badge>;
 }

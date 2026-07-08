@@ -26,8 +26,8 @@ export function LoginPage() {
 
   function validate() {
     const next: LoginErrors = {};
-    if (!email.includes("@")) next.email = "Enter a valid email address";
-    if (!password) next.password = "Password is required";
+    if (!email.includes("@")) next.email = "请输入有效的邮箱地址";
+    if (!password) next.password = "请输入密码";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -40,10 +40,10 @@ export function LoginPage() {
     setErrors({});
     try {
       await login(email, password);
-      toast.success("Logged in");
+      toast.success("登录成功");
       navigate(from, { replace: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Login failed";
+      const message = error instanceof Error ? error.message : "登录失败";
       setErrors({ form: message });
     } finally {
       setLoading(false);
@@ -53,13 +53,13 @@ export function LoginPage() {
   return (
     <AuthShell>
       <div className="auth-card__header">
-        <h2>Welcome back</h2>
-        <p>Sign in to review today, plan next steps, and keep priorities visible.</p>
+        <h2>欢迎回来</h2>
+        <p>登录后查看今日安排、规划下一步，并保持优先级清晰可见。</p>
       </div>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {errors.form ? <div className="form-alert">{errors.form}</div> : null}
         <Input
-          label="Email"
+          label="邮箱"
           name="email"
           type="email"
           autoComplete="email"
@@ -69,7 +69,7 @@ export function LoginPage() {
           required
         />
         <Input
-          label="Password"
+          label="密码"
           name="password"
           type="password"
           autoComplete="current-password"
@@ -79,11 +79,11 @@ export function LoginPage() {
           required
         />
         <Button type="submit" loading={loading} size="lg">
-          Log in
+          登录
         </Button>
       </form>
       <p className="auth-switch">
-        New here? <Link to="/register">Create an account</Link>
+        还没有账号？<Link to="/register">创建账号</Link>
       </p>
     </AuthShell>
   );

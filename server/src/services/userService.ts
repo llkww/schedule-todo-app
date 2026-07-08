@@ -32,7 +32,7 @@ export async function getUserProfile(userId: string) {
   });
 
   if (!user) {
-    throw notFound("User not found");
+    throw notFound("用户不存在");
   }
 
   return presentUser(user);
@@ -67,12 +67,12 @@ export async function updateUserPassword(
   });
 
   if (!user) {
-    throw unauthorized("Authentication required");
+    throw unauthorized("请先登录");
   }
 
   const isValid = await bcrypt.compare(input.currentPassword, user.passwordHash);
   if (!isValid) {
-    throw unauthorized("Current password is incorrect");
+    throw unauthorized("当前密码不正确");
   }
 
   const passwordHash = await bcrypt.hash(input.newPassword, 12);

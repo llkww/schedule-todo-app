@@ -51,7 +51,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   if (!response.ok || !payload?.success) {
     throw new ApiRequestError(response.status, {
       code: payload?.error?.code ?? "REQUEST_FAILED",
-      message: payload?.error?.message ?? "Request failed",
+      message: payload?.error?.message ?? "请求失败",
     });
   }
 

@@ -6,7 +6,7 @@ import { sendError } from "../utils/apiResponse.js";
 import { AppError } from "../utils/errors.js";
 
 export function notFoundHandler(req: Request, res: Response) {
-  return sendError(res, 404, "NOT_FOUND", `Route ${req.method} ${req.path} was not found`);
+  return sendError(res, 404, "NOT_FOUND", `接口 ${req.method} ${req.path} 不存在`);
 }
 
 export function errorHandler(
@@ -21,12 +21,12 @@ export function errorHandler(
 
   if (error instanceof ZodError) {
     const firstIssue = error.issues[0];
-    return sendError(res, 400, "VALIDATION_ERROR", firstIssue?.message ?? "Invalid input");
+    return sendError(res, 400, "VALIDATION_ERROR", firstIssue?.message ?? "输入无效");
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
-      return sendError(res, 409, "CONFLICT", "A record with this value already exists");
+      return sendError(res, 409, "CONFLICT", "记录已存在");
     }
   }
 
@@ -34,5 +34,5 @@ export function errorHandler(
     console.error(error);
   }
 
-  return sendError(res, 500, "INTERNAL_SERVER_ERROR", "Unexpected server error");
+  return sendError(res, 500, "INTERNAL_SERVER_ERROR", "服务器内部错误");
 }

@@ -5,16 +5,16 @@ import { getCurrentUser, loginUser, registerUser } from "../services/authService
 
 export async function register(req: Request, res: Response) {
   const result = await registerUser(req.body);
-  return sendSuccess(res, result, "Registered successfully", 201);
+  return sendSuccess(res, result, "注册成功", 201);
 }
 
 export async function login(req: Request, res: Response) {
   const result = await loginUser(req.body);
-  return sendSuccess(res, result, "Logged in successfully");
+  return sendSuccess(res, result, "登录成功");
 }
 
 export async function logout(_req: Request, res: Response) {
-  return sendSuccess(res, { loggedOut: true }, "Logged out successfully");
+  return sendSuccess(res, { loggedOut: true }, "已退出登录");
 }
 
 export async function me(req: Request, res: Response) {

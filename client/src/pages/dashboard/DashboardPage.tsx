@@ -26,7 +26,7 @@ export function DashboardPage() {
     try {
       setData(await fetchDashboardStats());
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Dashboard failed to load");
+      setError(requestError instanceof Error ? requestError.message : "仪表盘加载失败");
     } finally {
       setLoading(false);
     }
@@ -39,17 +39,17 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`Good planning, ${user?.username ?? "there"}`}
-        description="A compact view of today, upcoming work, and high-priority commitments."
+        title={`规划顺利，${user?.username ?? "你好"}`}
+        description="集中查看今日安排、近期事项和高优先级承诺。"
         actions={
           <>
             <Link className="button button--secondary" to="/tags">
               <Tags aria-hidden="true" />
-              Manage tags
+              管理标签
             </Link>
             <Link className="button button--primary" to="/schedules/new">
               <Plus aria-hidden="true" />
-              New schedule
+              新建日程
             </Link>
           </>
         }
@@ -57,46 +57,46 @@ export function DashboardPage() {
 
       {loading ? <SkeletonList rows={4} /> : null}
       {!loading && error ? (
-        <EmptyState title="Dashboard could not load" description={error} action={<Button onClick={() => void load()}>Retry</Button>} />
+        <EmptyState title="仪表盘无法加载" description={error} action={<Button onClick={() => void load()}>重试</Button>} />
       ) : null}
       {!loading && data ? (
         <div className="dashboard-grid">
           <div className="stat-grid">
-            <StatCard label="Today" value={data.counts.today} icon={<CalendarDays aria-hidden="true" />} />
-            <StatCard label="Incomplete" value={data.counts.incomplete} icon={<Clock3 aria-hidden="true" />} />
-            <StatCard label="Completed" value={data.counts.completed} icon={<CheckCircle2 aria-hidden="true" />} />
-            <StatCard label="Overdue" value={data.counts.overdue} icon={<TriangleAlert aria-hidden="true" />} />
+            <StatCard label="今日" value={data.counts.today} icon={<CalendarDays aria-hidden="true" />} />
+            <StatCard label="未完成" value={data.counts.incomplete} icon={<Clock3 aria-hidden="true" />} />
+            <StatCard label="已完成" value={data.counts.completed} icon={<CheckCircle2 aria-hidden="true" />} />
+            <StatCard label="已逾期" value={data.counts.overdue} icon={<TriangleAlert aria-hidden="true" />} />
           </div>
 
-          <Card title="Today" description="Tasks with a start or due date today.">
-            <TaskListPreview items={data.todayTasks} empty="No tasks scheduled for today." />
+          <Card title="今日安排" description="开始时间或截止时间在今天的日程。">
+            <TaskListPreview items={data.todayTasks} empty="今天还没有安排日程。" />
           </Card>
 
-          <Card title="Upcoming" description="Incomplete schedules due in the next seven days.">
-            <TaskListPreview items={data.upcomingTasks} empty="No upcoming deadlines." />
+          <Card title="近期截止" description="未来七天内到期且未完成的日程。">
+            <TaskListPreview items={data.upcomingTasks} empty="近期没有截止事项。" />
           </Card>
 
           <Card
-            title="Priority snapshot"
-            description={`${data.counts.importantUrgent} important and urgent items need attention.`}
+            title="优先级概览"
+            description={`${data.counts.importantUrgent} 个重要且紧急事项需要关注。`}
             actions={
               <Link className="button button--ghost button--sm" to="/matrix">
                 <Grid2X2 aria-hidden="true" />
-                Open matrix
+                打开四象限
               </Link>
             }
           >
             <div className="matrix-preview">
-              <span className="matrix-preview__hot">Do first</span>
-              <span>Schedule</span>
-              <span>Delegate</span>
-              <span>Batch</span>
+              <span className="matrix-preview__hot">立即处理</span>
+              <span>安排推进</span>
+              <span>委派处理</span>
+              <span>批量处理</span>
             </div>
           </Card>
 
-          <Card title="Tag statistics" description="How your schedules are currently grouped.">
+          <Card title="标签统计" description="查看当前日程按标签的分组情况。">
             <div className="tag-stat-list">
-              {data.tagStats.length === 0 ? <p className="muted-text">No tags yet.</p> : null}
+              {data.tagStats.length === 0 ? <p className="muted-text">还没有标签。</p> : null}
               {data.tagStats.map((tag) => (
                 <div className="tag-stat-row" key={tag.id}>
                   <TagPill color={tag.color} name={tag.name} />
@@ -106,8 +106,8 @@ export function DashboardPage() {
             </div>
           </Card>
 
-          <Card title="Recently created" description="The newest schedules in your workspace.">
-            <TaskListPreview items={data.recentTasks} empty="No schedules created yet." />
+          <Card title="最近创建" description="工作区中最新创建的日程。">
+            <TaskListPreview items={data.recentTasks} empty="还没有创建日程。" />
           </Card>
         </div>
       ) : null}

@@ -3,7 +3,7 @@ import type { Response } from "express";
 export function sendSuccess<T>(
   res: Response,
   data: T,
-  message = "success",
+  message = "操作成功",
   statusCode = 200,
 ) {
   return res.status(statusCode).json({

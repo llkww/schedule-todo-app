@@ -13,8 +13,8 @@ import type { DashboardStats, MatrixStats, Schedule } from "../types/domain";
 
 const sampleSchedule: Schedule = {
   id: "schedule-1",
-  title: "Ship project",
-  description: "Finish the important work",
+  title: "交付项目",
+  description: "完成重要工作",
   startTime: null,
   endTime: null,
   dueTime: new Date().toISOString(),
@@ -22,14 +22,14 @@ const sampleSchedule: Schedule = {
   importance: "high",
   urgency: "high",
   status: "pending",
-  tags: [{ id: "tag-1", name: "Work", color: "#4F46E5" }],
+  tags: [{ id: "tag-1", name: "工作", color: "#4F46E5" }],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
 
 function jsonResponse(data: unknown, status = 200) {
   return Promise.resolve(
-    new Response(JSON.stringify({ success: status < 400, data, message: "success" }), {
+    new Response(JSON.stringify({ success: status < 400, data, message: "操作成功" }), {
       status,
       headers: { "Content-Type": "application/json" },
     }),
@@ -58,33 +58,33 @@ describe("frontend app", () => {
     window.history.pushState({}, "", "/login");
     render(<App />);
 
-    await userEvent.click(await screen.findByRole("button", { name: /log in/i }));
+    await userEvent.click(await screen.findByRole("button", { name: "登录" }));
 
-    expect(screen.getByText(/valid email/i)).toBeInTheDocument();
-    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    expect(screen.getByText("请输入有效的邮箱地址")).toBeInTheDocument();
+    expect(screen.getByText("请输入密码")).toBeInTheDocument();
   });
 
   it("validates the register form", async () => {
     window.history.pushState({}, "", "/register");
     render(<App />);
 
-    await userEvent.click(await screen.findByRole("button", { name: /create account/i }));
+    await userEvent.click(await screen.findByRole("button", { name: "创建账号" }));
 
-    expect(screen.getByText(/username is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/valid email/i)).toBeInTheDocument();
-    expect(screen.getByText(/use at least 8 characters/i)).toBeInTheDocument();
+    expect(screen.getByText("请输入用户名")).toBeInTheDocument();
+    expect(screen.getByText("请输入有效的邮箱地址")).toBeInTheDocument();
+    expect(screen.getByText("请至少输入 8 个字符")).toBeInTheDocument();
   });
 
   it("redirects unauthenticated protected routes to login", async () => {
     window.history.pushState({}, "", "/schedules");
     render(<App />);
 
-    expect(await screen.findByRole("heading", { name: /welcome back/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "欢迎回来" })).toBeInTheDocument();
   });
 
   it("renders the schedule list", async () => {
     mockFetch((url) => {
-      if (url.includes("/tags")) return [{ id: "tag-1", name: "Work", color: "#4F46E5" }];
+      if (url.includes("/tags")) return [{ id: "tag-1", name: "工作", color: "#4F46E5" }];
       return {
         items: [sampleSchedule],
         pagination: { page: 1, pageSize: 8, total: 1, totalPages: 1 },
@@ -93,8 +93,8 @@ describe("frontend app", () => {
 
     renderWithRouter(<ScheduleListPage />);
 
-    expect(await screen.findByText("Ship project")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Complete$/i })).toBeInTheDocument();
+    expect(await screen.findByText("交付项目")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "完成" })).toBeInTheDocument();
   });
 
   it("renders the create schedule form", async () => {
@@ -102,9 +102,9 @@ describe("frontend app", () => {
 
     renderWithRouter(<ScheduleFormPage />);
 
-    expect(await screen.findByRole("heading", { name: /new schedule/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/importance/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "新建日程" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/标题/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/重要程度/)).toBeInTheDocument();
   });
 
   it("renders the tag management page", async () => {
@@ -112,8 +112,8 @@ describe("frontend app", () => {
 
     renderWithRouter(<TagsPage />);
 
-    expect(await screen.findByRole("heading", { name: /tags/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/tag name/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "标签" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/标签名称/)).toBeInTheDocument();
   });
 
   it("renders the dashboard page", async () => {
@@ -130,7 +130,7 @@ describe("frontend app", () => {
       todayTasks: [sampleSchedule],
       upcomingTasks: [sampleSchedule],
       recentTasks: [sampleSchedule],
-      tagStats: [{ id: "tag-1", name: "Work", color: "#4F46E5", scheduleCount: 1 }],
+      tagStats: [{ id: "tag-1", name: "工作", color: "#4F46E5", scheduleCount: 1 }],
     };
     localStorage.setItem("schedule.todo.token", "token");
     mockFetch((url) => {
@@ -150,22 +150,22 @@ describe("frontend app", () => {
 
     render(<App />);
 
-    expect(await screen.findByText(/Good planning/i)).toBeInTheDocument();
-    expect((await screen.findAllByText("Ship project")).length).toBeGreaterThan(0);
+    expect(await screen.findByText(/规划顺利/)).toBeInTheDocument();
+    expect((await screen.findAllByText("交付项目")).length).toBeGreaterThan(0);
   });
 
   it("renders the matrix page", async () => {
     const matrix: MatrixStats = {
-      importantUrgent: { title: "Important + urgent", description: "Do first", count: 1, items: [sampleSchedule] },
-      importantNotUrgent: { title: "Important + not urgent", description: "Schedule", count: 0, items: [] },
-      notImportantUrgent: { title: "Not important + urgent", description: "Delegate", count: 0, items: [] },
-      notImportantNotUrgent: { title: "Not important + not urgent", description: "Batch", count: 0, items: [] },
+      importantUrgent: { title: "重要且紧急", description: "立即处理", count: 1, items: [sampleSchedule] },
+      importantNotUrgent: { title: "重要不紧急", description: "安排推进", count: 0, items: [] },
+      notImportantUrgent: { title: "不重要但紧急", description: "委派或压缩处理", count: 0, items: [] },
+      notImportantNotUrgent: { title: "不重要不紧急", description: "批量处理或舍弃", count: 0, items: [] },
     };
     mockFetch(() => matrix);
 
     renderWithRouter(<MatrixPage />);
 
-    await waitFor(() => expect(screen.getByText("Important + urgent")).toBeInTheDocument());
-    expect(screen.getByText("Ship project")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("重要且紧急")).toBeInTheDocument());
+    expect(screen.getByText("交付项目")).toBeInTheDocument();
   });
 });

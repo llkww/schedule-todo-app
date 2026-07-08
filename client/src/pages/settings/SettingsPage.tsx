@@ -28,7 +28,7 @@ export function SettingsPage() {
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
     if (!username.trim()) {
-      setProfileError("Username is required");
+      setProfileError("请输入用户名");
       return;
     }
     setSaving(true);
@@ -36,9 +36,9 @@ export function SettingsPage() {
     try {
       await updateProfile({ username: username.trim() });
       await refreshUser();
-      toast.success("Profile updated");
+      toast.success("个人资料已更新");
     } catch (error) {
-      setProfileError(error instanceof Error ? error.message : "Profile update failed");
+      setProfileError(error instanceof Error ? error.message : "个人资料更新失败");
     } finally {
       setSaving(false);
     }
@@ -47,11 +47,11 @@ export function SettingsPage() {
   async function savePassword(event: FormEvent) {
     event.preventDefault();
     if (passwords.newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters");
+      setPasswordError("新密码至少需要 8 个字符");
       return;
     }
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setPasswordError("Passwords do not match");
+      setPasswordError("两次输入的密码不一致");
       return;
     }
     setSaving(true);
@@ -59,9 +59,9 @@ export function SettingsPage() {
     try {
       await updatePassword(passwords);
       setPasswords({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      toast.success("Password updated");
+      toast.success("密码已更新");
     } catch (error) {
-      setPasswordError(error instanceof Error ? error.message : "Password update failed");
+      setPasswordError(error instanceof Error ? error.message : "密码更新失败");
     } finally {
       setSaving(false);
     }
@@ -69,29 +69,29 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Manage profile information, password, and session state." />
+      <PageHeader title="设置" description="管理个人资料、密码和当前登录状态。" />
       <div className="settings-grid">
-        <Card title="Profile" description={user?.email ?? "Signed in account"}>
+        <Card title="个人资料" description={user?.email ?? "当前登录账号"}>
           <form className="form-stack" onSubmit={saveProfile}>
             {profileError ? <div className="form-alert">{profileError}</div> : null}
             <Input
-              label="Username"
+              label="用户名"
               name="username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
             <Button type="submit" loading={saving} icon={<Save aria-hidden="true" />}>
-              Save profile
+              保存资料
             </Button>
           </form>
         </Card>
 
-        <Card title="Change password" description="Use a password with letters, numbers, and at least 8 characters.">
+        <Card title="修改密码" description="请使用包含字母、数字且不少于 8 个字符的密码。">
           <form className="form-stack" onSubmit={savePassword}>
             {passwordError ? <div className="form-alert">{passwordError}</div> : null}
             <Input
-              label="Current password"
+              label="当前密码"
               name="currentPassword"
               type="password"
               value={passwords.currentPassword}
@@ -99,7 +99,7 @@ export function SettingsPage() {
               required
             />
             <Input
-              label="New password"
+              label="新密码"
               name="newPassword"
               type="password"
               value={passwords.newPassword}
@@ -107,7 +107,7 @@ export function SettingsPage() {
               required
             />
             <Input
-              label="Confirm new password"
+              label="确认新密码"
               name="confirmPassword"
               type="password"
               value={passwords.confirmPassword}
@@ -115,17 +115,17 @@ export function SettingsPage() {
               required
             />
             <Button type="submit" loading={saving}>
-              Update password
+              更新密码
             </Button>
           </form>
         </Card>
 
-        <Card title="Security note" description="Authentication uses a bearer token stored locally in this browser.">
+        <Card title="安全提示" description="认证使用保存在当前浏览器本地的访问令牌。">
           <p className="muted-text">
-            Keep this app on trusted devices. Logging out removes the local token from browser storage.
+            请仅在可信设备上使用本应用。退出登录会从浏览器存储中移除本地访问令牌。
           </p>
           <Button variant="secondary" onClick={() => void logout()} icon={<LogOut aria-hidden="true" />}>
-            Log out
+            退出登录
           </Button>
         </Card>
       </div>

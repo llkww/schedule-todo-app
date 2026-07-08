@@ -27,7 +27,7 @@ export function MatrixPage() {
     try {
       setData(await fetchMatrixStats());
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Matrix failed to load");
+      setError(requestError instanceof Error ? requestError.message : "四象限加载失败");
     } finally {
       setLoading(false);
     }
@@ -40,12 +40,12 @@ export function MatrixPage() {
   return (
     <>
       <PageHeader
-        title="Priority matrix"
-        description="Separate urgent noise from important work before deciding what to do next."
+        title="优先级四象限"
+        description="先区分紧急噪音和重要工作，再决定下一步行动。"
       />
       {loading ? <SkeletonList rows={4} /> : null}
       {!loading && error ? (
-        <EmptyState title="Matrix could not load" description={error} action={<Button onClick={() => void load()}>Retry</Button>} />
+        <EmptyState title="四象限无法加载" description={error} action={<Button onClick={() => void load()}>重试</Button>} />
       ) : null}
       {!loading && data ? (
         <div className="matrix-grid">
@@ -61,7 +61,7 @@ export function MatrixPage() {
                   <strong>{quadrant.count}</strong>
                 </div>
                 <div className="preview-list">
-                  {quadrant.items.length === 0 ? <p className="muted-text">No tasks in this quadrant.</p> : null}
+                  {quadrant.items.length === 0 ? <p className="muted-text">此象限暂无日程。</p> : null}
                   {quadrant.items.map((item) => (
                     <TaskCard compact key={item.id} schedule={item} />
                   ))}

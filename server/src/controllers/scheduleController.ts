@@ -18,7 +18,7 @@ export async function list(req: Request, res: Response) {
 
 export async function create(req: Request, res: Response) {
   const result = await createSchedule(req.user!.id, req.body);
-  return sendSuccess(res, result, "Schedule created", 201);
+  return sendSuccess(res, result, "日程创建成功", 201);
 }
 
 export async function detail(req: Request, res: Response) {
@@ -28,7 +28,7 @@ export async function detail(req: Request, res: Response) {
 
 export async function update(req: Request, res: Response) {
   const result = await updateSchedule(req.user!.id, req.params.id as string, req.body);
-  return sendSuccess(res, result, "Schedule updated");
+  return sendSuccess(res, result, "日程更新成功");
 }
 
 export async function complete(req: Request, res: Response) {
@@ -37,15 +37,15 @@ export async function complete(req: Request, res: Response) {
     req.params.id as string,
     req.body.completed,
   );
-  return sendSuccess(res, result, "Schedule completion updated");
+  return sendSuccess(res, result, "日程完成状态已更新");
 }
 
 export async function remove(req: Request, res: Response) {
   const result = await deleteSchedule(req.user!.id, req.params.id as string);
-  return sendSuccess(res, result, "Schedule deleted");
+  return sendSuccess(res, result, "日程已删除");
 }
 
 export async function removeCompleted(req: Request, res: Response) {
   const result = await deleteCompletedSchedules(req.user!.id);
-  return sendSuccess(res, result, "Completed schedules deleted");
+  return sendSuccess(res, result, "已删除完成日程");
 }

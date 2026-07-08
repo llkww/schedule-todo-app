@@ -121,23 +121,23 @@ export async function getMatrixStats(userId: string) {
 
   const quadrants = {
     importantUrgent: {
-      title: "Important + urgent",
-      description: "Do first",
+      title: "重要且紧急",
+      description: "立即处理",
       items: schedules.filter((item) => item.importance === "HIGH" && item.urgency === "HIGH"),
     },
     importantNotUrgent: {
-      title: "Important + not urgent",
-      description: "Schedule deliberately",
+      title: "重要不紧急",
+      description: "安排推进",
       items: schedules.filter((item) => item.importance === "HIGH" && item.urgency !== "HIGH"),
     },
     notImportantUrgent: {
-      title: "Not important + urgent",
-      description: "Delegate or contain",
+      title: "不重要但紧急",
+      description: "委派或压缩处理",
       items: schedules.filter((item) => item.importance !== "HIGH" && item.urgency === "HIGH"),
     },
     notImportantNotUrgent: {
-      title: "Not important + not urgent",
-      description: "Batch or drop",
+      title: "不重要不紧急",
+      description: "批量处理或舍弃",
       items: schedules.filter((item) => item.importance !== "HIGH" && item.urgency !== "HIGH"),
     },
   };

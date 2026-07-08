@@ -37,7 +37,7 @@ export function Modal({ open, title, description, onClose, children }: ModalProp
             <h2 id="modal-title">{title}</h2>
             {description ? <p>{description}</p> : null}
           </div>
-          <Button ref={closeRef} variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
+          <Button ref={closeRef} variant="ghost" size="sm" onClick={onClose} aria-label="关闭弹窗">
             <X aria-hidden="true" />
           </Button>
         </div>

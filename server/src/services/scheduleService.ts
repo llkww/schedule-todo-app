@@ -69,7 +69,7 @@ async function assertTagsBelongToUser(userId: string, tagIds: string[]) {
   });
 
   if (count !== ids.length) {
-    throw badRequest("One or more tags are invalid");
+    throw badRequest("存在无效标签");
   }
 
   return ids;
@@ -212,7 +212,7 @@ export async function getScheduleById(userId: string, id: string) {
   });
 
   if (!schedule) {
-    throw notFound("Schedule not found");
+    throw notFound("日程不存在");
   }
 
   return presentSchedule(schedule);
@@ -251,7 +251,7 @@ export async function updateSchedule(userId: string, id: string, input: Schedule
   });
 
   if (!existing) {
-    throw notFound("Schedule not found");
+    throw notFound("日程不存在");
   }
 
   const data: Prisma.ScheduleUpdateInput = {};
@@ -294,7 +294,7 @@ export async function setScheduleCompletion(userId: string, id: string, complete
   });
 
   if (!existing) {
-    throw notFound("Schedule not found");
+    throw notFound("日程不存在");
   }
 
   const schedule = await prisma.schedule.update({
@@ -316,7 +316,7 @@ export async function deleteSchedule(userId: string, id: string) {
   });
 
   if (!existing) {
-    throw notFound("Schedule not found");
+    throw notFound("日程不存在");
   }
 
   await prisma.schedule.delete({ where: { id } });

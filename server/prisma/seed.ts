@@ -11,16 +11,16 @@ async function main() {
     where: { email: "demo@example.com" },
     update: {},
     create: {
-      username: "Demo User",
+      username: "演示用户",
       email: "demo@example.com",
       passwordHash,
     },
   });
 
   const tagData = [
-    { name: "Work", color: "#4F46E5" },
-    { name: "Personal", color: "#0F766E" },
-    { name: "Focus", color: "#B45309" },
+    { name: "工作", color: "#4F46E5" },
+    { name: "个人", color: "#0F766E" },
+    { name: "专注", color: "#B45309" },
   ];
 
   const tags = await Promise.all(
@@ -47,8 +47,8 @@ async function main() {
   await prisma.schedule.create({
     data: {
       userId: user.id,
-      title: "Plan weekly priorities",
-      description: "Review active tasks and decide the top three outcomes for the week.",
+      title: "规划本周优先事项",
+      description: "回顾当前任务，并确定本周最重要的三个产出。",
       dueTime: tomorrow,
       importance: "HIGH",
       urgency: "HIGH",
@@ -62,8 +62,8 @@ async function main() {
   await prisma.schedule.create({
     data: {
       userId: user.id,
-      title: "Book health check",
-      description: "Reserve a convenient morning slot and prepare the required documents.",
+      title: "预约健康检查",
+      description: "预约合适的上午时段，并准备需要的材料。",
       dueTime: nextWeek,
       importance: "HIGH",
       urgency: "LOW",

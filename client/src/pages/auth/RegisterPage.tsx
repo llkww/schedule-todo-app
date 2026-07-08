@@ -37,14 +37,14 @@ export function RegisterPage() {
 
   function validate() {
     const next: RegisterErrors = {};
-    if (!values.username.trim()) next.username = "Username is required";
-    if (!values.email.includes("@")) next.email = "Enter a valid email address";
-    if (values.password.length < 8) next.password = "Use at least 8 characters";
+    if (!values.username.trim()) next.username = "请输入用户名";
+    if (!values.email.includes("@")) next.email = "请输入有效的邮箱地址";
+    if (values.password.length < 8) next.password = "请至少输入 8 个字符";
     else if (!/[A-Za-z]/.test(values.password) || !/\d/.test(values.password)) {
-      next.password = "Use both letters and numbers";
+      next.password = "请同时包含字母和数字";
     }
     if (values.password !== values.confirmPassword) {
-      next.confirmPassword = "Passwords do not match";
+      next.confirmPassword = "两次输入的密码不一致";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -58,10 +58,10 @@ export function RegisterPage() {
     setErrors({});
     try {
       await register(values);
-      toast.success("Account created");
+      toast.success("账号创建成功");
       navigate("/", { replace: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Registration failed";
+      const message = error instanceof Error ? error.message : "注册失败";
       setErrors({ form: message });
     } finally {
       setLoading(false);
@@ -71,13 +71,13 @@ export function RegisterPage() {
   return (
     <AuthShell>
       <div className="auth-card__header">
-        <h2>Create account</h2>
-        <p>Start with a private workspace where tasks and tags stay scoped to you.</p>
+        <h2>创建账号</h2>
+        <p>从一个私人的工作区开始，日程和标签只归属于你。</p>
       </div>
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {errors.form ? <div className="form-alert">{errors.form}</div> : null}
         <Input
-          label="Username"
+          label="用户名"
           name="username"
           autoComplete="username"
           value={values.username}
@@ -86,7 +86,7 @@ export function RegisterPage() {
           required
         />
         <Input
-          label="Email"
+          label="邮箱"
           name="email"
           type="email"
           autoComplete="email"
@@ -96,7 +96,7 @@ export function RegisterPage() {
           required
         />
         <Input
-          label="Password"
+          label="密码"
           name="password"
           type="password"
           autoComplete="new-password"
@@ -105,14 +105,14 @@ export function RegisterPage() {
           error={errors.password}
           required
         />
-        <div className="password-meter" aria-label="Password strength">
+        <div className="password-meter" aria-label="密码强度">
           <span className={score >= 1 ? "password-meter__bar password-meter__bar--active" : "password-meter__bar"} />
           <span className={score >= 2 ? "password-meter__bar password-meter__bar--active" : "password-meter__bar"} />
           <span className={score >= 3 ? "password-meter__bar password-meter__bar--active" : "password-meter__bar"} />
           <span className={score >= 4 ? "password-meter__bar password-meter__bar--active" : "password-meter__bar"} />
         </div>
         <Input
-          label="Confirm password"
+          label="确认密码"
           name="confirmPassword"
           type="password"
           autoComplete="new-password"
@@ -122,11 +122,11 @@ export function RegisterPage() {
           required
         />
         <Button type="submit" loading={loading} size="lg">
-          Create account
+          创建账号
         </Button>
       </form>
       <p className="auth-switch">
-        Already have an account? <Link to="/login">Log in</Link>
+        已有账号？<Link to="/login">登录</Link>
       </p>
     </AuthShell>
   );
