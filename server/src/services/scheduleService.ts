@@ -10,7 +10,7 @@ import {
 } from "../constants/scheduleEnums.js";
 import { badRequest, notFound } from "../utils/errors.js";
 
-const scheduleInclude = {
+export const scheduleInclude = {
   tags: {
     include: {
       tag: true,
@@ -89,7 +89,7 @@ function normalizeState(input: Pick<ScheduleInput, "completed" | "status">) {
   };
 }
 
-function presentSchedule(schedule: ScheduleWithTags) {
+export function presentSchedule(schedule: ScheduleWithTags) {
   return {
     id: schedule.id,
     title: schedule.title,
