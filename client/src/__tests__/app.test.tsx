@@ -38,7 +38,7 @@ function jsonResponse(data: unknown, status = 200) {
 
 function mockFetch(handler: (url: string) => unknown) {
   vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
-    const url = typeof input === "string" ? input : input.url;
+    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     return jsonResponse(handler(url));
   });
 }
