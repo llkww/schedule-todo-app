@@ -549,6 +549,134 @@
   font-size: 0.75rem;
 }
 
+.auth-page {
+  align-items: center;
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 440px);
+  min-height: 100vh;
+  padding: var(--space-8);
+}
+
+.auth-panel {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 620px;
+}
+
+.brand-mark--large {
+  height: 52px;
+  width: 52px;
+}
+
+.auth-panel h1 {
+  font-size: clamp(2rem, 4vw, 4rem);
+  letter-spacing: 0;
+  line-height: 1;
+  margin: 0;
+}
+
+.auth-panel p {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 56ch;
+}
+
+.auth-panel__features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.auth-panel__features span {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 650;
+  gap: var(--space-2);
+  min-height: 38px;
+  padding: 0 var(--space-3);
+}
+
+.auth-card {
+  background: rgb(255 255 255 / 0.86);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: var(--space-8);
+}
+
+.auth-card__header {
+  margin-bottom: var(--space-6);
+}
+
+.auth-card__header h2,
+.auth-card__header p,
+.auth-switch {
+  margin: 0;
+}
+
+.auth-card__header h2 {
+  font-size: 1.65rem;
+  line-height: 1.2;
+}
+
+.auth-card__header p,
+.auth-switch {
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.auth-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.auth-switch {
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.form-alert {
+  background: var(--color-danger-soft);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  padding: var(--space-3);
+}
+
+.password-meter {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: calc(var(--space-2) * -1);
+}
+
+.password-meter__bar {
+  background: var(--color-surface-muted);
+  border-radius: 999px;
+  height: 5px;
+}
+
+.password-meter__bar--active {
+  background: var(--color-primary);
+}
+
+.muted-text {
+  color: var(--color-text-muted);
+}
+
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -727,5 +855,18 @@
   .calendar-cell {
     min-height: 68px;
     padding: var(--space-2);
+  }
+
+  .auth-page {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+
+  .auth-panel {
+    display: none;
+  }
+
+  .auth-card {
+    padding: var(--space-5);
   }
 }
