@@ -553,9 +553,12 @@
   align-items: center;
   display: grid;
   gap: var(--space-8);
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 440px);
+  grid-template-columns: minmax(320px, 520px) minmax(360px, 440px);
+  justify-content: center;
+  margin: 0 auto;
   min-height: 100vh;
   padding: var(--space-8);
+  width: min(100%, 1120px);
 }
 
 .auth-panel {
@@ -1111,6 +1114,23 @@
 
 .layout-scrim {
   display: none;
+}
+
+@media (max-width: 960px) {
+  .auth-page {
+    gap: var(--space-6);
+    grid-template-columns: minmax(0, 440px);
+    justify-items: center;
+  }
+
+  .auth-panel {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .auth-panel__features {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 760px) {
