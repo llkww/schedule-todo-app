@@ -6,7 +6,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
     <main className="auth-page">
       <section className="auth-panel" aria-label="产品概览">
         <div className="brand-mark brand-mark--large" aria-hidden="true">
-          日
+          <CalendarCheck2 aria-hidden="true" />
         </div>
         <h1>日程待办</h1>
         <p>

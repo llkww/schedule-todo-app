@@ -1042,6 +1042,12 @@
   width: 38px;
 }
 
+.brand-mark svg {
+  height: 1.15em;
+  stroke-width: 2.35;
+  width: 1.15em;
+}
+
 .sidebar__close,
 .topbar__menu {
   display: none;

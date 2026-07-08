@@ -1,4 +1,5 @@
 import {
+  CalendarCheck2,
   CalendarDays,
   CheckSquare,
   Grid2X2,
@@ -26,7 +27,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     <aside className={cn("sidebar", open && "sidebar--open")}>
       <div className="sidebar__header">
         <div className="brand-mark" aria-hidden="true">
-          日
+          <CalendarCheck2 aria-hidden="true" />
         </div>
         <div>
           <strong>日程</strong>
