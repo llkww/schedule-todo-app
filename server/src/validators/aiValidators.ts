@@ -5,7 +5,7 @@ export const aiScheduleIdSchema = z.object({
 });
 
 export const parseTaskSchema = z.object({
-  text: z.string().trim().min(2, "请输入要解析的任务内容").max(1000, "任务描述过长"),
+  text: z.string().trim().min(2, "请输入要解析的任务内容").max(3000, "任务描述过长"),
 });
 
 export const summarySchema = z.object({

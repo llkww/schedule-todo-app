@@ -190,8 +190,13 @@ describe("frontend app", () => {
 
     renderWithRouter(<AiPlannerPage />);
 
-    expect(await screen.findByRole("heading", { name: "智能日程助理" })).toBeInTheDocument();
-    expect(await screen.findByText(/智能日程助理未配置/)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "智能规划" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "今日智能计划" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "时间冲突建议" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "任务总结" })).toBeInTheDocument();
+    expect(screen.queryByText("DeepSeek")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "今日智能计划" }));
+    expect(await screen.findByText(/智能规划当前不可用/)).toBeInTheDocument();
   });
 
   it("shows loading while generating today plan", async () => {
@@ -228,7 +233,7 @@ describe("frontend app", () => {
 
     renderWithRouter(<AiPlannerPage />);
 
-    const button = await screen.findByRole("button", { name: /生成今日计划/ });
+    const button = await screen.findByRole("button", { name: "今日智能计划" });
     await userEvent.click(button);
     expect(button).toBeDisabled();
     resolvePlan?.();
@@ -267,8 +272,8 @@ describe("frontend app", () => {
 
     renderWithRouter(<AiPlannerPage />);
 
-    await userEvent.type(await screen.findByLabelText("任务描述"), "明天下午三点完成数据库实验报告");
-    await userEvent.click(screen.getByRole("button", { name: /解析草稿/ }));
+    await userEvent.type(await screen.findByLabelText("输入自然语言日程或问题"), "明天下午三点完成数据库实验报告");
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
     expect(await screen.findByText("完成数据库实验报告")).toBeInTheDocument();
     expect(createdBodies).toHaveLength(0);
 
@@ -295,7 +300,7 @@ describe("frontend app", () => {
 
     renderWithRouter(<AiPlannerPage />);
 
-    await userEvent.click(await screen.findByRole("button", { name: /生成今日计划/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "今日智能计划" }));
     expect(await screen.findByText("AI 服务调用失败")).toBeInTheDocument();
   });
 });

@@ -84,6 +84,29 @@ function mockDeepSeek(content: unknown, inspectBody?: (body: DeepSeekBody) => vo
   return fetchMock;
 }
 
+function mockDeepSeekSequence(contents: unknown[]) {
+  const fetchMock = vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+    JSON.parse(String(init?.body)) as DeepSeekBody;
+    const next = contents[Math.min(fetchMock.mock.calls.length - 1, contents.length - 1)];
+
+    return new Response(
+      JSON.stringify({
+        choices: [
+          {
+            message: {
+              content: typeof next === "string" ? next : JSON.stringify(next),
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  });
+
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 function userPrompt(body: DeepSeekBody) {
   return body.messages.find((message) => message.role === "user")?.content ?? "";
 }
@@ -214,6 +237,38 @@ describe("AI Planner API", () => {
       .set("Authorization", `Bearer ${token}`);
     expect(invalidSchema.status).toBe(502);
     expect(invalidSchema.body.error.code).toBe("AI_RESPONSE_INVALID");
+  });
+
+  it("retries once to repair invalid AI JSON before returning an error", async () => {
+    const { token } = await registerUser("repair-ai@example.com");
+    const schedule = await createSchedule(token, { title: "需要修复返回格式的任务" });
+    const fetchMock = mockDeepSeekSequence([
+      "这不是 JSON",
+      {
+        overview: "修复后返回合法计划。",
+        recommendedTasks: [
+          {
+            taskId: schedule.id,
+            title: schedule.title,
+            suggestedTimeRange: "09:00-10:00",
+            priorityReason: "重要且紧急。",
+            riskLevel: "高风险",
+            actionSuggestion: "优先完成。",
+          },
+        ],
+        warnings: [{ type: "截止时间", message: "注意截止时间。", relatedTaskIds: [schedule.id] }],
+        productivityTip: "先处理最重要的事项。",
+      },
+    ]);
+
+    const response = await request(app)
+      .post("/api/ai/plan/today")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(response.body.data.recommendedTasks[0].riskLevel).toBe("high");
+    expect(response.body.data.warnings[0].type).toBe("deadline");
   });
 
   it("parses a task draft without writing to the database", async () => {

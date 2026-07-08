@@ -5,6 +5,96 @@ import { importanceValues, statusValues, urgencyValues } from "../constants/sche
 
 export const riskLevelSchema = z.enum(["low", "medium", "high"]);
 
+const riskLevelInputSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, "low" | "medium" | "high"> = {
+    low: "low",
+    medium: "medium",
+    high: "high",
+    "低": "low",
+    "低风险": "low",
+    "中": "medium",
+    "中风险": "medium",
+    "高": "high",
+    "高风险": "high",
+  };
+  return map[normalized] ?? normalized;
+}, riskLevelSchema);
+
+const warningTypeSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, "overdue" | "conflict" | "workload" | "deadline"> = {
+    overdue: "overdue",
+    conflict: "conflict",
+    workload: "workload",
+    deadline: "deadline",
+    "逾期": "overdue",
+    "过期": "overdue",
+    "冲突": "conflict",
+    "负载": "workload",
+    "工作量": "workload",
+    "截止": "deadline",
+    "截止时间": "deadline",
+  };
+  return map[normalized] ?? normalized;
+}, z.enum(["overdue", "conflict", "workload", "deadline"]));
+
+const importanceInputSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, "low" | "medium" | "high"> = {
+    low: "low",
+    medium: "medium",
+    high: "high",
+    LOW: "low",
+    MEDIUM: "medium",
+    HIGH: "high",
+    "低": "low",
+    "中": "medium",
+    "高": "high",
+  };
+  return map[value.trim()] ?? map[normalized] ?? normalized;
+}, z.enum(importanceValues));
+
+const urgencyInputSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, "low" | "medium" | "high"> = {
+    low: "low",
+    medium: "medium",
+    high: "high",
+    LOW: "low",
+    MEDIUM: "medium",
+    HIGH: "high",
+    "低": "low",
+    "中": "medium",
+    "高": "high",
+  };
+  return map[value.trim()] ?? map[normalized] ?? normalized;
+}, z.enum(urgencyValues));
+
+const statusInputSchema = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, "pending" | "in_progress" | "completed" | "cancelled"> = {
+    pending: "pending",
+    in_progress: "in_progress",
+    completed: "completed",
+    cancelled: "cancelled",
+    PENDING: "pending",
+    IN_PROGRESS: "in_progress",
+    COMPLETED: "completed",
+    CANCELLED: "cancelled",
+    "待处理": "pending",
+    "进行中": "in_progress",
+    "已完成": "completed",
+    "已取消": "cancelled",
+  };
+  return map[value.trim()] ?? map[normalized] ?? normalized;
+}, z.enum(statusValues));
+
 export const todayPlanResponseSchema = z.object({
   overview: z.string().min(1).max(2000),
   recommendedTasks: z
@@ -14,7 +104,7 @@ export const todayPlanResponseSchema = z.object({
         title: z.string().min(1).max(160),
         suggestedTimeRange: z.string().min(1).max(120),
         priorityReason: z.string().min(1).max(600),
-        riskLevel: riskLevelSchema,
+        riskLevel: riskLevelInputSchema,
         actionSuggestion: z.string().min(1).max(600),
       }),
     )
@@ -22,7 +112,7 @@ export const todayPlanResponseSchema = z.object({
   warnings: z
     .array(
       z.object({
-        type: z.enum(["overdue", "conflict", "workload", "deadline"]),
+        type: warningTypeSchema,
         message: z.string().min(1).max(600),
         relatedTaskIds: z.array(z.string().min(1).max(160)).max(20),
       }),
@@ -37,7 +127,7 @@ export const explainResponseSchema = z.object({
   explanation: z.string().min(1).max(2000),
   factors: z.array(z.string().min(1).max(260)).min(1).max(12),
   suggestedAction: z.string().min(1).max(800),
-  riskLevel: riskLevelSchema,
+  riskLevel: riskLevelInputSchema,
 });
 
 const nullableIsoStringSchema = z
@@ -62,9 +152,9 @@ export const parseTaskResponseSchema = z.object({
   startTime: nullableIsoStringSchema,
   endTime: nullableIsoStringSchema,
   dueTime: nullableIsoStringSchema,
-  importance: z.enum(importanceValues),
-  urgency: z.enum(urgencyValues),
-  status: z.enum(statusValues),
+  importance: importanceInputSchema,
+  urgency: urgencyInputSchema,
+  status: statusInputSchema,
   suggestedTags: z.array(z.string().trim().min(1).max(40)).max(10),
   confidence: z.number().min(0).max(1),
   clarifyingQuestions: z.array(z.string().trim().min(1).max(240)).max(6),
@@ -100,7 +190,15 @@ export const conflictAdviceResponseSchema = z.object({
 function extractJsonText(content: string) {
   const trimmed = content.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  return fenced?.[1]?.trim() ?? trimmed;
+  const withoutFence = fenced?.[1]?.trim() ?? trimmed;
+  const firstObject = withoutFence.indexOf("{");
+  const lastObject = withoutFence.lastIndexOf("}");
+
+  if (firstObject >= 0 && lastObject > firstObject) {
+    return withoutFence.slice(firstObject, lastObject + 1);
+  }
+
+  return withoutFence;
 }
 
 export function parseJsonSafely<T>(content: string, schema: z.ZodSchema<T>): T {

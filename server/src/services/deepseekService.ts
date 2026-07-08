@@ -77,7 +77,6 @@ async function requestDeepSeek(messages: DeepSeekMessage[]) {
         messages,
         temperature: 0.2,
         max_tokens: aiConfig.maxOutputTokens,
-        response_format: { type: "json_object" },
       }),
       signal: controller.signal,
     });
@@ -107,7 +106,38 @@ export async function callDeepSeekJson<T>({ userPrompt, schema }: CallDeepSeekJs
     { role: "system", content: buildSystemPrompt() },
     { role: "user", content: userPrompt },
   ]);
-  const content = response.choices?.[0]?.message?.content;
+  const content = response.choices?.[0]?.message?.content?.trim();
+
+  if (!content) {
+    return retryJsonRepair(userPrompt, "", schema);
+  }
+
+  try {
+    return parseJsonSafely(content, schema);
+  } catch (error) {
+    if (error instanceof AppError && error.code === "AI_RESPONSE_INVALID") {
+      return retryJsonRepair(userPrompt, content, schema);
+    }
+
+    throw error;
+  }
+}
+
+async function retryJsonRepair<T>(userPrompt: string, previousContent: string, schema: z.ZodSchema<T>) {
+  const repairPrompt = [
+    "上一次模型输出不是可解析的 JSON 或不符合 schema。",
+    "请根据原始任务重新生成，必须只返回一个 JSON 对象。",
+    "不要 Markdown，不要解释，不要代码块，不要省略字段。",
+    "原始任务：",
+    userPrompt,
+    "上一次输出：",
+    previousContent ? previousContent.slice(0, 4000) : "(empty)",
+  ].join("\n");
+  const repaired = await requestDeepSeek([
+    { role: "system", content: buildSystemPrompt() },
+    { role: "user", content: repairPrompt },
+  ]);
+  const content = repaired.choices?.[0]?.message?.content?.trim();
 
   if (!content) {
     throw new AppError(502, "AI_RESPONSE_INVALID", "AI 返回格式无效，请稍后重试");

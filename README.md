@@ -305,7 +305,7 @@ AI 测试说明：
 - 浅色现代 SaaS 风格，低饱和配色，强调可读性和效率工具质感
 - 统一组件：Button、Input、Textarea、Select、Badge、TagPill、Card、Modal、ConfirmDialog、EmptyState、Loading、PageHeader、Sidebar、Topbar、StatCard、TaskCard、FilterBar、CalendarCell、PriorityBadge、StatusBadge
 - 页面覆盖登录、注册、仪表盘、日程列表、日程详情、日程创建/编辑、标签、四象限、日历、设置、404
-- 智能规划页面覆盖服务状态、今日计划、冲突建议、自然语言草稿和任务总结
+- 智能规划页面采用聊天式界面，覆盖今日计划、冲突建议、任务总结和自然语言日程草稿确认
 - 每个数据页包含 loading、empty、error 状态
 - 表单字段有 label、错误提示和可见 focus 状态
 - 删除使用自定义 ConfirmDialog，不使用浏览器默认 confirm

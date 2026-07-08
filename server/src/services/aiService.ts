@@ -145,7 +145,7 @@ export async function generateTodayPlan(userId: string) {
       },
       include: aiScheduleInclude,
       orderBy: [{ dueTime: "asc" }, { createdAt: "desc" }],
-      take: 50,
+      take: 30,
     }),
     getUserTags(userId),
   ]);
@@ -153,7 +153,7 @@ export async function generateTodayPlan(userId: string) {
   return callDeepSeekJson({
     schema: todayPlanResponseSchema,
     userPrompt: buildUserPrompt(
-      "基于当前用户未完成任务生成今日智能计划，推荐处理顺序、时间安排、风险提醒和效率建议。",
+      "基于当前用户未完成任务生成今日智能计划。最多推荐 8 个任务、5 条提醒，所有字段必须简洁。",
       {
         overview: "string",
         recommendedTasks: [
@@ -224,7 +224,7 @@ export async function parseTaskDraft(userId: string, text: string) {
   return callDeepSeekJson({
     schema: parseTaskResponseSchema,
     userPrompt: buildUserPrompt(
-      "把用户输入的自然语言解析为日程草稿。只生成草稿，不要创建、修改或删除数据库记录。",
+      "把用户输入的自然语言解析为日程草稿。只生成草稿，不要创建、修改或删除数据库记录。信息不足时仍返回合法 JSON，不确定的日期填 null，并通过 clarifyingQuestions 继续提问。",
       {
         title: "string",
         description: "string",
