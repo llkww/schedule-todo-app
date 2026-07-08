@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { aiRouter } from "./aiRoutes.js";
 import { authRouter } from "./authRoutes.js";
 import { scheduleRouter } from "./scheduleRoutes.js";
 import { statsRouter } from "./statsRoutes.js";
@@ -14,6 +15,7 @@ apiRouter.get("/health", (_req, res) => {
 });
 
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/ai", aiRouter);
 apiRouter.use("/schedules", scheduleRouter);
 apiRouter.use("/tags", tagRouter);
 apiRouter.use("/stats", statsRouter);
