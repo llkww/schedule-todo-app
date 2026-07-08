@@ -102,7 +102,7 @@ VITE_API_URL="http://localhost:3001/api"
 
 ## 智能日程助理
 
-智能日程助理完全依赖 DeepSeek API，不提供规则模式降级。未配置 `DEEPSEEK_API_KEY` 时，前端会显示“智能日程助理未配置”，后端 AI 功能接口会返回 `AI_NOT_CONFIGURED`，不会尝试生成伪结果。
+智能日程助理完全依赖 DeepSeek API，不提供规则模式降级。未配置 `DEEPSEEK_API_KEY` 时，前端会提示智能规划暂不可用，后端 AI 功能接口会返回 `AI_NOT_CONFIGURED`，不会尝试生成伪结果。
 
 配置方式：
 
@@ -342,7 +342,7 @@ AI 测试说明：
 - 前端请求失败：确认后端在 `3001` 端口运行，`FRONTEND_ORIGIN` 与前端地址一致。
 - Prisma 找不到数据库：先运行 `npm run db:migrate`。
 - 智能日程助理显示未配置：确认 `server/.env` 存在，并设置了 `DEEPSEEK_API_KEY`。
-- AI 接口返回 `AI_RESPONSE_INVALID`：模型返回内容不是合法 JSON 或不符合后端 schema，可稍后重试或调整模型。
+- AI 接口返回 `AI_RESPONSE_INVALID`：模型返回内容无法整理为可展示结果，可稍后重试或调整模型。
 - AI 接口返回超时：可适当提高 `AI_TIMEOUT_MS`，同时确认网络和 DeepSeek 服务可用。
 - PowerShell 无法运行 `npm`：使用 `npm.cmd` 或调整本机执行策略。
 

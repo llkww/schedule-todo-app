@@ -115,7 +115,19 @@ export type AiTaskDraft = {
   suggestedTags: string[];
   confidence: number;
   clarifyingQuestions: string[];
+  missingFields?: DraftMissingField[];
 };
+
+export type DraftMissingField =
+  | "title"
+  | "description"
+  | "startTime"
+  | "endTime"
+  | "dueTime"
+  | "importance"
+  | "urgency"
+  | "status"
+  | "tags";
 
 export type AiSummary = {
   range: "today" | "week";

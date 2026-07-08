@@ -140,7 +140,7 @@ async function retryJsonRepair<T>(userPrompt: string, previousContent: string, s
   const content = repaired.choices?.[0]?.message?.content?.trim();
 
   if (!content) {
-    throw new AppError(502, "AI_RESPONSE_INVALID", "AI 返回格式无效，请稍后重试");
+    throw new AppError(502, "AI_RESPONSE_INVALID", "这次智能规划没有整理成功，请稍后重试");
   }
 
   return parseJsonSafely(content, schema);

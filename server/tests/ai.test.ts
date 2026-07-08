@@ -231,12 +231,45 @@ describe("AI Planner API", () => {
     expect(invalidJson.status).toBe(502);
     expect(invalidJson.body.error.code).toBe("AI_RESPONSE_INVALID");
 
-    mockDeepSeek({ overview: "缺少字段" });
+    mockDeepSeek({ overview: "缺少字段", recommendedTasks: [null] });
     const invalidSchema = await request(app)
       .post("/api/ai/plan/today")
       .set("Authorization", `Bearer ${token}`);
     expect(invalidSchema.status).toBe(502);
     expect(invalidSchema.body.error.code).toBe("AI_RESPONSE_INVALID");
+  });
+
+  it("accepts recoverable Chinese AI fields for today plan", async () => {
+    const { token } = await registerUser("loose-plan-ai@example.com");
+    const schedule = await createSchedule(token, { title: "整理今日计划返回兼容性" });
+    mockDeepSeek({
+      overview: "今天先处理关键事项。",
+      recommendedTasks: [
+        {
+          taskId: schedule.id,
+          title: schedule.title,
+          riskLevel: "中等风险",
+          priorityReason: "需要优先推进。",
+          actionSuggestion: "先完成最小可交付部分。",
+        },
+      ],
+      warnings: {
+        type: "提醒",
+        message: "注意截止时间。",
+        relatedTaskIds: schedule.id,
+      },
+      productivityTip: "先做一件最重要的小事。",
+    });
+
+    const response = await request(app)
+      .post("/api/ai/plan/today")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.recommendedTasks[0].riskLevel).toBe("medium");
+    expect(response.body.data.recommendedTasks[0].suggestedTimeRange).toBe("今天");
+    expect(response.body.data.warnings[0].type).toBe("deadline");
+    expect(response.body.data.warnings[0].relatedTaskIds).toEqual([schedule.id]);
   });
 
   it("retries once to repair invalid AI JSON before returning an error", async () => {
@@ -286,6 +319,7 @@ describe("AI Planner API", () => {
       suggestedTags: ["课程"],
       confidence: 0.88,
       clarifyingQuestions: [],
+      missingFields: [],
     });
 
     const response = await request(app)
@@ -296,6 +330,7 @@ describe("AI Planner API", () => {
     const afterCount = await prisma.schedule.count();
     expect(response.status).toBe(200);
     expect(response.body.data.title).toBe("完成数据库实验报告");
+    expect(response.body.data.missingFields).toEqual([]);
     expect(afterCount).toBe(beforeCount);
   });
 

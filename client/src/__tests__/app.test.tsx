@@ -60,6 +60,7 @@ function renderWithRouter(ui: ReactElement) {
 describe("frontend app", () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     vi.restoreAllMocks();
     window.history.pushState({}, "", "/");
   });
@@ -196,7 +197,7 @@ describe("frontend app", () => {
     expect(screen.getByRole("button", { name: "任务总结" })).toBeInTheDocument();
     expect(screen.queryByText("DeepSeek")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "今日智能计划" }));
-    expect(await screen.findByText(/智能规划当前不可用/)).toBeInTheDocument();
+    expect(await screen.findByText(/连不上智能规划服务/)).toBeInTheDocument();
   });
 
   it("shows loading while generating today plan", async () => {
@@ -241,18 +242,22 @@ describe("frontend app", () => {
   });
 
   it("shows parsed task draft and creates schedule only after confirmation", async () => {
+    const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const endTime = new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString();
+    const dueTime = new Date(Date.now() + 30 * 60 * 60 * 1000).toISOString();
     const draft: AiTaskDraft = {
       title: "完成数据库实验报告",
       description: "根据自然语言解析。",
-      startTime: null,
-      endTime: null,
-      dueTime: new Date().toISOString(),
+      startTime,
+      endTime,
+      dueTime,
       importance: "high",
       urgency: "high",
       status: "pending",
       suggestedTags: ["课程"],
       confidence: 0.91,
       clarifyingQuestions: [],
+      missingFields: [],
     };
     const createdBodies: unknown[] = [];
 
@@ -272,17 +277,94 @@ describe("frontend app", () => {
 
     renderWithRouter(<AiPlannerPage />);
 
-    await userEvent.type(await screen.findByLabelText("输入自然语言日程或问题"), "明天下午三点完成数据库实验报告");
+    await userEvent.type(
+      await screen.findByLabelText("输入自然语言日程或问题"),
+      "明天15点到16点完成数据库实验报告，今晚22点截止，很重要很紧急，待处理，课程标签",
+    );
     await userEvent.click(screen.getByRole("button", { name: "发送" }));
     expect(await screen.findByText("完成数据库实验报告")).toBeInTheDocument();
+    expect(screen.queryByText(/置信度/)).not.toBeInTheDocument();
     expect(createdBodies).toHaveLength(0);
 
-    await userEvent.click(screen.getByRole("button", { name: "确认创建日程" }));
+    await userEvent.click(screen.getByRole("button", { name: "确认保存日程" }));
     await waitFor(() => expect(createdBodies).toHaveLength(1));
     expect(createdBodies[0]).toMatchObject({
       title: "完成数据库实验报告",
       tagIds: ["tag-course"],
     });
+  });
+
+  it("keeps asking before saving an incomplete natural language schedule", async () => {
+    const draft: AiTaskDraft = {
+      title: "完成数据库实验报告",
+      description: "",
+      startTime: null,
+      endTime: null,
+      dueTime: null,
+      importance: "medium",
+      urgency: "medium",
+      status: "pending",
+      suggestedTags: [],
+      confidence: 0.5,
+      clarifyingQuestions: ["什么时候开始？"],
+      missingFields: ["description", "startTime", "endTime", "dueTime", "importance", "urgency", "status", "tags"],
+    };
+
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/ai/status")) {
+        return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
+      }
+      if (url.includes("/tags")) return jsonResponse([]);
+      if (url.includes("/ai/parse-task")) return jsonResponse(draft);
+      return jsonResponse({});
+    });
+
+    renderWithRouter(<AiPlannerPage />);
+
+    await userEvent.type(await screen.findByLabelText("输入自然语言日程或问题"), "帮我安排数据库实验报告");
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+
+    expect(await screen.findByText(/还差几项信息/)).toBeInTheDocument();
+    expect(screen.getByText("开始时间")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "确认保存日程" })).not.toBeInTheDocument();
+  });
+
+  it("preserves AI Planner chat history after the page is remounted", async () => {
+    const draft: AiTaskDraft = {
+      title: "准备周会",
+      description: "",
+      startTime: null,
+      endTime: null,
+      dueTime: null,
+      importance: "medium",
+      urgency: "medium",
+      status: "pending",
+      suggestedTags: [],
+      confidence: 0.5,
+      clarifyingQuestions: ["什么时候开始？"],
+      missingFields: ["description", "startTime", "endTime", "dueTime", "importance", "urgency", "status", "tags"],
+    };
+
+    vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (url.includes("/ai/status")) {
+        return jsonResponse({ provider: "deepseek", configured: true, model: "deepseek-v4-flash" });
+      }
+      if (url.includes("/tags")) return jsonResponse([]);
+      if (url.includes("/ai/parse-task")) return jsonResponse(draft);
+      return jsonResponse({});
+    });
+
+    const firstRender = renderWithRouter(<AiPlannerPage />);
+    await userEvent.type(await screen.findByLabelText("输入自然语言日程或问题"), "准备周会");
+    await userEvent.click(screen.getByRole("button", { name: "发送" }));
+    expect((await screen.findAllByText("准备周会")).length).toBeGreaterThan(0);
+
+    firstRender.unmount();
+    renderWithRouter(<AiPlannerPage />);
+
+    expect((await screen.findAllByText("准备周会")).length).toBeGreaterThan(0);
   });
 
   it("shows AI error state when generation fails", async () => {
@@ -301,6 +383,6 @@ describe("frontend app", () => {
     renderWithRouter(<AiPlannerPage />);
 
     await userEvent.click(await screen.findByRole("button", { name: "今日智能计划" }));
-    expect(await screen.findByText("AI 服务调用失败")).toBeInTheDocument();
+    expect(await screen.findByText(/智能规划服务暂时没有响应/)).toBeInTheDocument();
   });
 });

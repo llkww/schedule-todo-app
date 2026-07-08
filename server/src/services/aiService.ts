@@ -54,6 +54,31 @@ function summarizeDescription(value?: string | null) {
   return value.length > 320 ? `${value.slice(0, 320)}...` : value;
 }
 
+function pickPlanningSchedules(schedules: AiScheduleRecord[]) {
+  const now = Date.now();
+
+  return [...schedules]
+    .sort((left, right) => {
+      const leftDue = left.dueTime?.getTime() ?? Number.POSITIVE_INFINITY;
+      const rightDue = right.dueTime?.getTime() ?? Number.POSITIVE_INFINITY;
+      const leftUrgency = left.urgency === "HIGH" ? 0 : left.urgency === "MEDIUM" ? 1 : 2;
+      const rightUrgency = right.urgency === "HIGH" ? 0 : right.urgency === "MEDIUM" ? 1 : 2;
+      const leftImportance = left.importance === "HIGH" ? 0 : left.importance === "MEDIUM" ? 1 : 2;
+      const rightImportance = right.importance === "HIGH" ? 0 : right.importance === "MEDIUM" ? 1 : 2;
+      const leftOverdue = leftDue < now ? 0 : 1;
+      const rightOverdue = rightDue < now ? 0 : 1;
+
+      return (
+        leftOverdue - rightOverdue ||
+        leftDue - rightDue ||
+        leftUrgency - rightUrgency ||
+        leftImportance - rightImportance ||
+        right.createdAt.getTime() - left.createdAt.getTime()
+      );
+    })
+    .slice(0, 16);
+}
+
 function presentAiSchedule(schedule: AiScheduleRecord) {
   return {
     id: schedule.id,
@@ -145,15 +170,16 @@ export async function generateTodayPlan(userId: string) {
       },
       include: aiScheduleInclude,
       orderBy: [{ dueTime: "asc" }, { createdAt: "desc" }],
-      take: 30,
+      take: 50,
     }),
     getUserTags(userId),
   ]);
+  const planningSchedules = pickPlanningSchedules(schedules);
 
   return callDeepSeekJson({
     schema: todayPlanResponseSchema,
     userPrompt: buildUserPrompt(
-      "基于当前用户未完成任务生成今日智能计划。最多推荐 8 个任务、5 条提醒，所有字段必须简洁。",
+      "基于当前用户未完成任务生成今日智能计划。只围绕 data.schedules 中存在的任务，最多推荐 5 个任务、3 条提醒。字段必须短、自然、适合直接展示给用户。",
       {
         overview: "string",
         recommendedTasks: [
@@ -177,7 +203,7 @@ export async function generateTodayPlan(userId: string) {
       },
       {
         currentDate: new Date().toISOString(),
-        schedules: schedules.map(presentAiSchedule),
+        schedules: planningSchedules.map(presentAiSchedule),
         tags: tags.map((tag) => ({ name: tag.name })),
       },
     ),
@@ -224,7 +250,15 @@ export async function parseTaskDraft(userId: string, text: string) {
   return callDeepSeekJson({
     schema: parseTaskResponseSchema,
     userPrompt: buildUserPrompt(
-      "把用户输入的自然语言解析为日程草稿。只生成草稿，不要创建、修改或删除数据库记录。信息不足时仍返回合法 JSON，不确定的日期填 null，并通过 clarifyingQuestions 继续提问。",
+      [
+        "把用户输入的自然语言解析为日程草稿。只生成草稿，不要创建、修改或删除数据库记录。",
+        "必须确认这些字段后才算完整：title、description、startTime、endTime、dueTime、importance、urgency、status、tags。",
+        "用户明确说无备注时 description 可为空；用户明确说无标签时 suggestedTags 可为空。",
+        "未被用户明确提供或明确选择默认值的字段，必须放入 missingFields，并在 clarifyingQuestions 里继续追问。",
+        "不要为了通过校验而自行默认填 medium、pending 或空标签；只有用户明确表达后才可视为已确认。",
+        "如果输入中包含已有草稿和用户补充，应该在原草稿上补充信息；如果用户补充与创建日程无关，保持原草稿并继续追问缺失字段。",
+        "不确定的日期填 null，所有日期都使用 ISO 字符串。",
+      ].join(" "),
       {
         title: "string",
         description: "string",
@@ -235,8 +269,10 @@ export async function parseTaskDraft(userId: string, text: string) {
         urgency: "low | medium | high",
         status: "pending | in_progress | completed | cancelled",
         suggestedTags: ["string"],
-        confidence: 0.8,
         clarifyingQuestions: ["string"],
+        missingFields: [
+          "title | description | startTime | endTime | dueTime | importance | urgency | status | tags",
+        ],
       },
       {
         currentDate: new Date().toISOString(),
