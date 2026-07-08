@@ -9,6 +9,7 @@ import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { ScheduleDetailPage } from "./pages/schedules/ScheduleDetailPage";
 import { ScheduleFormPage } from "./pages/schedules/ScheduleFormPage";
 import { ScheduleListPage } from "./pages/schedules/ScheduleListPage";
+import { TagsPage } from "./pages/tags/TagsPage";
 import { ProtectedRoute, PublicOnlyRoute } from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -30,7 +31,7 @@ export default function App() {
               <Route path="schedules/:id/edit" element={<ScheduleFormPage />} />
               <Route path="calendar" element={<PlaceholderPage title="Calendar" />} />
               <Route path="matrix" element={<PlaceholderPage title="Priority matrix" />} />
-              <Route path="tags" element={<PlaceholderPage title="Tags" />} />
+              <Route path="tags" element={<TagsPage />} />
               <Route path="settings" element={<PlaceholderPage title="Settings" />} />
             </Route>
           </Route>
