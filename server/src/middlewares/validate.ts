@@ -6,7 +6,15 @@ type RequestPart = "body" | "query" | "params";
 export function validateRequest(part: RequestPart, schema: ZodSchema) {
   return (req: Request, _res: Response, next: NextFunction) => {
     const parsed = schema.parse(req[part]);
-    req[part] = parsed;
+    if (part === "query") {
+      Object.defineProperty(req, "query", {
+        value: parsed,
+        enumerable: true,
+        configurable: true,
+      });
+    } else {
+      req[part] = parsed;
+    }
     next();
   };
 }
