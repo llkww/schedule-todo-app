@@ -17,6 +17,7 @@ https://github.com/llkww/schedule-todo-app.git
 - 仪表盘统计、今日任务、即将到期、最近创建、标签统计
 - 重要-紧急四象限视图
 - 月历视图和选中日期任务列表
+- 智能日程助理：今日计划、优先级解释、冲突建议、自然语言任务草稿、今日/本周总结
 - 个人设置：修改用户名、修改密码、退出登录
 - 统一 API 响应、错误处理、输入校验和权限隔离
 - 现代 SaaS 风格前端 UI，包含 loading、empty、error、success 状态
@@ -44,6 +45,7 @@ server/
   src/middlewares/     auth, validation, errors, rate limiting
   src/routes/          REST route modules
   src/services/        business logic and Prisma access
+  src/utils/           API response, errors, AI prompt and response parsing helpers
   src/validators/      Zod schemas
 ```
 
@@ -77,10 +79,17 @@ Copy-Item .env.example server/.env
 
 ```env
 DATABASE_URL="file:./dev.db"
-JWT_SECRET="replace-with-a-long-random-secret-at-least-32-characters"
+JWT_SECRET="replace-with-a-long-random-secret"
 JWT_EXPIRES_IN="7d"
 PORT=3001
 FRONTEND_ORIGIN="http://localhost:5173"
+
+AI_PROVIDER="deepseek"
+DEEPSEEK_API_KEY=""
+DEEPSEEK_BASE_URL="https://api.deepseek.com"
+DEEPSEEK_MODEL="deepseek-v4-flash"
+AI_TIMEOUT_MS="20000"
+AI_MAX_OUTPUT_TOKENS="1200"
 ```
 
 前端默认请求 `http://localhost:3001/api`。如需覆盖，可在 `client/.env` 中设置：
@@ -90,6 +99,45 @@ VITE_API_URL="http://localhost:3001/api"
 ```
 
 不要提交真实 `.env` 文件。
+
+## 智能日程助理
+
+智能日程助理完全依赖 DeepSeek API，不提供规则模式降级。未配置 `DEEPSEEK_API_KEY` 时，前端会显示“智能日程助理未配置”，后端 AI 功能接口会返回 `AI_NOT_CONFIGURED`，不会尝试生成伪结果。
+
+配置方式：
+
+1. 复制 `server/.env.example` 到 `server/.env`。
+2. 在 `server/.env` 中设置 `DEEPSEEK_API_KEY`。
+3. 保持 `DEEPSEEK_BASE_URL="https://api.deepseek.com"`。
+4. 默认模型为 `deepseek-v4-flash`，也可改为 `deepseek-v4-pro`。
+
+安全注意：
+
+- API Key 只能放在后端 `server/.env`，不要写入前端代码。
+- `.env`、`server/.env`、`client/.env` 已被 `.gitignore` 忽略，不得提交 GitHub。
+- 不要把 API Key 写入 README、测试、提交信息、截图或聊天消息。
+- DeepSeek API 调用可能产生费用，请按 DeepSeek 账户计费规则确认。
+
+隐私说明：
+
+- 智能日程助理会把生成建议所需的最小任务数据发送给 DeepSeek API。
+- 发送字段包括任务标题、描述摘要、开始/结束/截止时间、完成状态、重要程度、紧急程度、状态、标签名、创建和更新时间。
+- 不会发送密码、`passwordHash`、JWT、Authorization header、API Key、secret 或其他凭据。
+- AI 返回内容只按普通文本渲染，不使用 HTML 注入。
+
+功能入口：
+
+- 侧边栏“智能规划”
+- 页面路径：`/ai-planner`
+- 仪表盘“智能今日建议”模块
+
+AI 行为边界：
+
+- 今日计划、优先级解释、时间冲突建议、自然语言任务草稿、任务总结都通过 DeepSeek API 生成。
+- AI 不能直接创建、修改或删除数据库记录。
+- 自然语言任务解析只生成草稿；用户点击“确认创建日程”后，才会调用普通日程创建接口。
+- 时间冲突建议只返回调整建议，不会自动改动任务时间。
+- 后端会对 AI 返回 JSON 做 Zod schema 校验，校验失败返回 `AI_RESPONSE_INVALID`。
 
 ## 数据库初始化
 
@@ -151,6 +199,14 @@ npm run build
 - 用户所有权隔离和越权访问拒绝
 - 非法 importance / urgency 拒绝、空标题拒绝
 - 前端登录/注册表单校验、未登录重定向、核心页面渲染
+- AI Planner 鉴权、未配置 Key、用户数据隔离、越权解释拒绝、非法 AI JSON/schema、安全草稿解析、总结和冲突建议
+- 前端智能规划页面渲染、未配置提示、生成 loading、草稿确认创建和 AI 错误状态
+
+AI 测试说明：
+
+- 后端测试通过 mock `global.fetch` 模拟 DeepSeek OpenAI-compatible 响应。
+- 测试不会真实调用 DeepSeek API，也不会读取或输出真实 API Key。
+- 前端测试 mock `/api/ai/*` 响应，不依赖后端或真实模型。
 
 ## API 概览
 
@@ -183,6 +239,15 @@ npm run build
 - `GET /api/stats/dashboard`
 - `GET /api/stats/matrix`
 - `GET /api/stats/tags`
+
+智能日程助理：
+
+- `GET /api/ai/status`
+- `POST /api/ai/plan/today`
+- `POST /api/ai/explain/:scheduleId`
+- `POST /api/ai/parse-task`
+- `POST /api/ai/summary`
+- `POST /api/ai/conflict-advice`
 
 用户设置：
 
@@ -218,6 +283,10 @@ npm run build
 - JWT secret 来自环境变量，token 有过期时间
 - 所有受保护 API 使用 `Authorization: Bearer <token>`
 - 日程、标签、用户设置全部按 token 中的当前用户 ID 查询和修改
+- AI Planner 接口全部需要登录，且只读取当前用户自己的日程和标签
+- AI prompt 只包含最小必要任务字段，不包含密码、token、API Key、secret 或 Authorization header
+- AI 返回结果必须通过 Zod schema 校验，非法 JSON 或结构不符会返回统一错误
+- AI 不直接写数据库；自然语言解析只返回草稿，用户确认后走普通日程创建接口
 - 用户不能读取、修改、删除或绑定其他用户的日程和标签
 - Zod 校验所有请求体、参数和查询参数，拒绝非法枚举、非法颜色、空标题、超长文本和异常分页
 - Prisma ORM 防止 SQL 注入，不拼接 SQL 查询
@@ -236,6 +305,7 @@ npm run build
 - 浅色现代 SaaS 风格，低饱和配色，强调可读性和效率工具质感
 - 统一组件：Button、Input、Textarea、Select、Badge、TagPill、Card、Modal、ConfirmDialog、EmptyState、Loading、PageHeader、Sidebar、Topbar、StatCard、TaskCard、FilterBar、CalendarCell、PriorityBadge、StatusBadge
 - 页面覆盖登录、注册、仪表盘、日程列表、日程详情、日程创建/编辑、标签、四象限、日历、设置、404
+- 智能规划页面覆盖服务状态、今日计划、冲突建议、自然语言草稿和任务总结
 - 每个数据页包含 loading、empty、error 状态
 - 表单字段有 label、错误提示和可见 focus 状态
 - 删除使用自定义 ConfirmDialog，不使用浏览器默认 confirm
@@ -260,12 +330,20 @@ npm run build
 - `security: harden validation authentication and headers`
 - `test: add core backend and frontend tests`
 - `docs: complete project documentation`
+- `chore: prepare DeepSeek environment config`
+- `feat: add DeepSeek AI planner service`
+- `feat: build AI planner frontend page`
+- `test: add AI planner coverage`
+- `docs: document DeepSeek AI planner setup`
 
 ## 常见问题
 
 - `JWT_SECRET must be at least 32 characters`：检查 `server/.env` 是否存在且 secret 足够长。
 - 前端请求失败：确认后端在 `3001` 端口运行，`FRONTEND_ORIGIN` 与前端地址一致。
 - Prisma 找不到数据库：先运行 `npm run db:migrate`。
+- 智能日程助理显示未配置：确认 `server/.env` 存在，并设置了 `DEEPSEEK_API_KEY`。
+- AI 接口返回 `AI_RESPONSE_INVALID`：模型返回内容不是合法 JSON 或不符合后端 schema，可稍后重试或调整模型。
+- AI 接口返回超时：可适当提高 `AI_TIMEOUT_MS`，同时确认网络和 DeepSeek 服务可用。
 - PowerShell 无法运行 `npm`：使用 `npm.cmd` 或调整本机执行策略。
 
 ## 后续改进
