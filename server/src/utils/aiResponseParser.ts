@@ -27,6 +27,14 @@ function textField(maxLength: number, fallback: string) {
   }, z.string().min(1).max(maxLength));
 }
 
+function optionalTextField(maxLength: number) {
+  return z.preprocess((value) => {
+    if (value === null || value === undefined) return "";
+    const text = String(value).trim();
+    return text.length > maxLength ? text.slice(0, maxLength) : text;
+  }, z.string().max(maxLength));
+}
+
 function arrayField<T extends z.ZodTypeAny>(itemSchema: T, maxLength: number) {
   return z.preprocess((value) => {
     if (Array.isArray(value)) return value;
@@ -36,7 +44,7 @@ function arrayField<T extends z.ZodTypeAny>(itemSchema: T, maxLength: number) {
 }
 
 const riskLevelInputSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return "medium";
   const normalized = value.trim().toLowerCase();
   const map: Record<string, "low" | "medium" | "high"> = {
     low: "low",
@@ -63,7 +71,7 @@ const riskLevelInputSchema = z.preprocess((value) => {
 }, riskLevelSchema);
 
 const warningTypeSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return "workload";
   const normalized = value.trim().toLowerCase();
   const map: Record<string, "overdue" | "conflict" | "workload" | "deadline"> = {
     overdue: "overdue",
@@ -99,91 +107,120 @@ const warningTypeSchema = z.preprocess((value) => {
 }, z.enum(["overdue", "conflict", "workload", "deadline"]));
 
 const importanceInputSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return "medium";
   const normalized = value.trim().toLowerCase();
   const map: Record<string, "low" | "medium" | "high"> = {
     low: "low",
     medium: "medium",
     high: "high",
+    normal: "medium",
     LOW: "low",
     MEDIUM: "medium",
     HIGH: "high",
     "低": "low",
     "中": "medium",
     "高": "high",
+    "普通": "medium",
+    "一般": "medium",
+    "无": "medium",
   };
-  return map[value.trim()] ?? map[normalized] ?? normalized;
+  return map[value.trim()] ?? map[normalized] ?? "medium";
 }, z.enum(importanceValues));
 
 const urgencyInputSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return "medium";
   const normalized = value.trim().toLowerCase();
   const map: Record<string, "low" | "medium" | "high"> = {
     low: "low",
     medium: "medium",
     high: "high",
+    normal: "medium",
     LOW: "low",
     MEDIUM: "medium",
     HIGH: "high",
     "低": "low",
     "中": "medium",
     "高": "high",
+    "普通": "medium",
+    "一般": "medium",
+    "无": "medium",
   };
-  return map[value.trim()] ?? map[normalized] ?? normalized;
+  return map[value.trim()] ?? map[normalized] ?? "medium";
 }, z.enum(urgencyValues));
 
 const statusInputSchema = z.preprocess((value) => {
-  if (typeof value !== "string") return value;
+  if (typeof value !== "string") return "pending";
   const normalized = value.trim().toLowerCase();
   const map: Record<string, "pending" | "in_progress" | "completed" | "cancelled"> = {
     pending: "pending",
     in_progress: "in_progress",
     completed: "completed",
     cancelled: "cancelled",
+    todo: "pending",
+    open: "pending",
     PENDING: "pending",
     IN_PROGRESS: "in_progress",
     COMPLETED: "completed",
     CANCELLED: "cancelled",
     "待处理": "pending",
+    "待办": "pending",
+    "未开始": "pending",
     "进行中": "in_progress",
     "已完成": "completed",
     "已取消": "cancelled",
   };
-  return map[value.trim()] ?? map[normalized] ?? normalized;
+  return map[value.trim()] ?? map[normalized] ?? "pending";
 }, z.enum(statusValues));
 
 const relatedTaskIdsSchema = arrayField(textField(160, "未关联日程"), 20);
 
-const missingFieldsSchema = arrayField(
-  z.preprocess((value) => {
-    if (typeof value !== "string") return value;
-    const normalized = value.trim();
-    const map: Record<string, (typeof draftMissingFieldValues)[number]> = {
-      title: "title",
-      description: "description",
-      startTime: "startTime",
-      endTime: "endTime",
-      dueTime: "dueTime",
-      importance: "importance",
-      urgency: "urgency",
-      status: "status",
-      tags: "tags",
-      "标题": "title",
-      "名称": "title",
-      "描述": "description",
-      "备注": "description",
-      "开始时间": "startTime",
-      "结束时间": "endTime",
-      "截止时间": "dueTime",
-      "重要程度": "importance",
-      "紧急程度": "urgency",
-      "状态": "status",
-      "标签": "tags",
-    };
-    return map[normalized] ?? normalized;
-  }, draftMissingFieldSchema),
-  draftMissingFieldValues.length,
-);
+function normalizeMissingField(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  const map: Record<string, (typeof draftMissingFieldValues)[number]> = {
+    title: "title",
+    description: "description",
+    startTime: "startTime",
+    endTime: "endTime",
+    dueTime: "dueTime",
+    importance: "importance",
+    urgency: "urgency",
+    status: "status",
+    tags: "tags",
+    tag: "tags",
+    labels: "tags",
+    label: "tags",
+    "标题": "title",
+    "名称": "title",
+    "任务标题": "title",
+    "描述": "description",
+    "备注": "description",
+    "任务描述": "description",
+    "开始": "startTime",
+    "开始时间": "startTime",
+    "结束": "endTime",
+    "结束时间": "endTime",
+    "截止": "dueTime",
+    "截止时间": "dueTime",
+    "时间": "startTime",
+    "重要": "importance",
+    "重要程度": "importance",
+    "紧急": "urgency",
+    "紧急程度": "urgency",
+    "状态": "status",
+    "标签": "tags",
+  };
+
+  return map[normalized] ?? null;
+}
+
+const missingFieldsSchema = z.preprocess((value) => {
+  const values = Array.isArray(value) ? value : value === null || value === undefined || value === "" ? [] : [value];
+  const normalized = values
+    .map((item) => normalizeMissingField(item))
+    .filter((item): item is (typeof draftMissingFieldValues)[number] => Boolean(item));
+  return [...new Set(normalized)].slice(0, draftMissingFieldValues.length);
+}, z.array(draftMissingFieldSchema).max(draftMissingFieldValues.length));
 
 const confidenceSchema = z.preprocess((value) => {
   const numeric = Number(value);
@@ -200,7 +237,7 @@ export const todayPlanResponseSchema = z.object({
       title: textField(160, "未命名日程"),
       suggestedTimeRange: textField(120, "今天"),
       priorityReason: textField(600, "这件事适合优先处理。"),
-      riskLevel: riskLevelInputSchema,
+      riskLevel: riskLevelInputSchema.default("medium"),
       actionSuggestion: textField(600, "先从最清晰的一步开始。"),
     }),
     20,
@@ -227,23 +264,22 @@ export const explainResponseSchema = z.object({
 
 const nullableIsoStringSchema = z
   .preprocess((value) => value ?? null, z.union([z.string().trim(), z.null()]))
-  .transform((value, ctx) => {
+  .transform((value) => {
     if (value === null || value === "") {
       return null;
     }
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      ctx.addIssue({ code: "custom", message: "日期格式无效" });
-      return z.NEVER;
+      return null;
     }
 
     return date.toISOString();
   });
 
 export const parseTaskResponseSchema = z.object({
-  title: z.string().trim().min(1).max(120),
-  description: z.string().trim().max(2000).default(""),
+  title: optionalTextField(120),
+  description: optionalTextField(2000).default(""),
   startTime: nullableIsoStringSchema,
   endTime: nullableIsoStringSchema,
   dueTime: nullableIsoStringSchema,
@@ -252,7 +288,7 @@ export const parseTaskResponseSchema = z.object({
   status: statusInputSchema.default("pending"),
   suggestedTags: arrayField(z.string().trim().min(1).max(40), 10).default([]),
   confidence: confidenceSchema.default(0.5),
-  clarifyingQuestions: arrayField(z.string().trim().min(1).max(240), 6).default([]),
+  clarifyingQuestions: arrayField(z.string().trim().min(1).max(240), 20).default([]),
   missingFields: missingFieldsSchema.default([]),
 });
 

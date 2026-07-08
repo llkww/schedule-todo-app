@@ -751,7 +751,7 @@ function DraftView({
   return (
     <div className="ai-draft-card">
       <div className="ai-result-item__title">
-        <strong>{draft.title}</strong>
+        <strong>{draft.title.trim() || "待确认标题"}</strong>
         <Badge tone={canConfirm ? "success" : "warning"}>{canConfirm ? "待你确认" : "还需补充"}</Badge>
       </div>
       {draft.description ? <p>{draft.description}</p> : <p>没有备注。</p>}

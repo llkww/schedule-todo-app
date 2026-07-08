@@ -334,6 +334,49 @@ describe("AI Planner API", () => {
     expect(afterCount).toBe(beforeCount);
   });
 
+  it("accepts incomplete parse drafts with null text fields and many questions", async () => {
+    const { token } = await registerUser("parse-incomplete-ai@example.com");
+    mockDeepSeek({
+      title: null,
+      description: null,
+      startTime: "明天下午",
+      endTime: null,
+      dueTime: null,
+      importance: null,
+      urgency: null,
+      status: null,
+      suggestedTags: [],
+      clarifyingQuestions: [
+        "请提供任务标题",
+        "请提供任务描述",
+        "请提供任务开始时间",
+        "请提供任务结束时间",
+        "请提供任务截止时间",
+        "请提供任务的重要程度",
+        "请提供任务的紧急程度",
+        "请提供任务状态",
+      ],
+      missingFields: ["title", "description", "时间", "labels", "unknown-field"],
+    });
+
+    const response = await request(app)
+      .post("/api/ai/parse-task")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ text: "明天下午提醒我上课" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.title).toBe("");
+    expect(response.body.data.description).toBe("");
+    expect(response.body.data.startTime).toBeNull();
+    expect(response.body.data.importance).toBe("medium");
+    expect(response.body.data.urgency).toBe("medium");
+    expect(response.body.data.status).toBe("pending");
+    expect(response.body.data.clarifyingQuestions).toHaveLength(8);
+    expect(response.body.data.missingFields).toContain("title");
+    expect(response.body.data.missingFields).toContain("startTime");
+    expect(response.body.data.missingFields).toContain("tags");
+  });
+
   it("summarizes only the current user's schedules and keeps backend computed counts", async () => {
     const userA = await registerUser("summary-a@example.com");
     const userB = await registerUser("summary-b@example.com");
